@@ -1,2 +1,2 @@
 # multiverse
-Multiverse is a chrome extension that lets you manage instances of code-server both remotely and locally.
+Multiverse is a web app for managing code-server instances remotely.
