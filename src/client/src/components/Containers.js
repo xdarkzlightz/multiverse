@@ -1,12 +1,19 @@
 import React from "react";
-import Container from "./Container";
+import DockerContainer from "./Container";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 
 export default ({ containers, setContainers }) => {
   return (
-    <ul>
-      {containers.map(c => (
-        <Container key={c.id} {...c} setContainers={setContainers} />
-      ))}
-    </ul>
+    <Container>
+      <Row>
+        {containers.map(c => (
+          <Col xs={3} className="mb-3">
+            <DockerContainer key={c.id} {...c} setContainers={setContainers} />
+          </Col>
+        ))}
+      </Row>
+    </Container>
   );
 };
