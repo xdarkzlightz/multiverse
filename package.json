@@ -4,7 +4,7 @@
   "description": "Multiverse is a web app for managing remote instances of code-server",
   "main": "src/index.js",
   "scripts": {
-    "dev": "nodemon src/"
+    "dev": "nodemon --ignore client/ src/"
   },
   "repository": "https://github.com/xdarkzlightz/multiverse.git",
   "author": "xdarkzlightz",
