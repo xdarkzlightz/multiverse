@@ -3,19 +3,26 @@
   "version": "0.0.0",
   "description": "Multiverse is a web app for managing remote instances of code-server",
   "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/"
+  },
   "repository": "https://github.com/xdarkzlightz/multiverse.git",
   "author": "xdarkzlightz",
   "license": "MIT",
   "private": true,
   "devDependencies": {
+    "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.18.0",
     "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.0",
-    "eslint": "^5.16.0"
+    "nodemon": "^1.19.1"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-basic-auth": "^1.2.0",
+    "npm": "^6.10.0"
   }
 }
