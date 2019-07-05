@@ -2,6 +2,8 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const basicAuth = require('express-basic-auth')
 
+const docker = require('./routes/docker')
+
 const app = express()
 app.use(bodyParser.json())
 app.use(
@@ -16,5 +18,7 @@ app.get('/', (req, res) => {
     message: 'Index endpoint, enpoint is for sending the frontend content'
   })
 })
+
+app.use('/docker', docker)
 
 module.exports = app
