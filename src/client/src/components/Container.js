@@ -4,7 +4,7 @@ import axios from "axios";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 
-export default ({ name, id, running, setContainers }) => {
+export default ({ name, id, running, port, setContainers }) => {
   const doAction = async action => {
     await axios.post(`/docker/containers/${id}/${action}`);
     const res = await axios.get("/docker/containers");
@@ -20,7 +20,7 @@ export default ({ name, id, running, setContainers }) => {
             <Button
               variant="success"
               onClick={() =>
-                window.open(`http://${window.location.hostname}:8443`)
+                window.open(`http://${window.location.hostname}:${port}`)
               }
             >
               Open
