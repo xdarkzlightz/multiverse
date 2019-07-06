@@ -24,7 +24,7 @@ export default () => {
     <Container>
       <Row>
         {containers.map(c => (
-          <Col key={c.id} xs={3} className="mb-3">
+          <Col key={c.id} xs={12} sm={6} md={6} lg={4} xl={3} className="mb-3">
             <DockerContainer {...c} setContainers={setContainers} />
           </Col>
         ))}
