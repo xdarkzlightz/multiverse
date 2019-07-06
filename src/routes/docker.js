@@ -13,7 +13,8 @@ router.get('/containers', async (req, res) => {
       containers: filtered.map(c => ({
         name: c.Names[0].substring(1),
         id: c.Id,
-        running: c.State === 'running'
+        running: c.State === 'running',
+        port: c.Labels['coder.port'] || '8443'
       }))
     })
   } catch (e) {
@@ -24,9 +25,19 @@ router.get('/containers', async (req, res) => {
 
 router.post('/containers', async (req, res) => {
   try {
+    const http = req.body.http ? '--allow-http' : ''
+    const auth = req.body.auth ? '' : '--no-auth'
     const container = await docker.createContainer({
       Image: 'codercom/code-server',
-      name: req.body.name
+      Env: [`PORT=${req.body.port}`, `PASSWORD=${req.body.password}`],
+      Entrypoint: ['dumb-init', 'code-server', http, auth],
+      name: req.body.name,
+      ExposedPorts: { [req.body.port]: {} },
+      Labels: { [`coder.port`]: req.body.port },
+      HostConfig: {
+        PortBindings: { [req.body.port]: [{ HostPort: req.body.port }] },
+        Binds: [`${req.body.path}:/home/coder/project`]
+      }
     })
 
     container.start(() => res.status(204).send())
