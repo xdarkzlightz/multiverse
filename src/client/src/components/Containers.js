@@ -16,18 +16,16 @@ export default () => {
       .get("/docker/containers")
       .then(res => setContainers(res.data.containers))
       .catch(err => {
-        console.log(err);
         setError(err.message);
       });
   }
 
-  console.log(containers);
   return (
     <Container>
       <Row>
         {containers.map(c => (
-          <Col xs={3} className="mb-3">
-            <DockerContainer key={c.id} {...c} setContainers={setContainers} />
+          <Col key={c.id} xs={3} className="mb-3">
+            <DockerContainer {...c} setContainers={setContainers} />
           </Col>
         ))}
       </Row>

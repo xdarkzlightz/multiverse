@@ -13,7 +13,7 @@ export default ({ name, id, running, setContainers }) => {
 
   return (
     <Card style={{ width: "16rem" }}>
-      <Card.Header>{name}</Card.Header>
+      <Card.Header>{name.replace(/_/g, " ")}</Card.Header>
       <Card.Footer className="d-flex justify-content-around">
         {running ? (
           <>

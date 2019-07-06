@@ -54,7 +54,7 @@ export default () => {
           onClick={async e => {
             try {
               await axios.post("/docker/containers", {
-                name: projectName
+                name: projectName.replace(/\s/g, "_")
               });
               setSubmitted(true);
             } catch (e) {
