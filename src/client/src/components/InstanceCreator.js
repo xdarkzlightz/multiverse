@@ -5,17 +5,20 @@ import { Redirect } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
+import Alert from "react-bootstrap/Alert";
 
 export default () => {
   const [projectName, setProjectName] = useState("");
   const [password, setPassword] = useState("");
   const [auth, setAuth] = useState(true);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
   if (submitted) return <Redirect to="/" />;
 
   return (
     <Container>
+      {error ? <Alert variant="danger">{error}</Alert> : <></>}
       <Form>
         <Form.Group>
           <Form.Label>Project Name</Form.Label>
@@ -49,10 +52,15 @@ export default () => {
         <Button
           variant="primary"
           onClick={async e => {
-            await axios.post("/docker/containers", {
-              name: projectName
-            });
-            setSubmitted(true);
+            try {
+              await axios.post("/docker/containers", {
+                name: projectName
+              });
+              setSubmitted(true);
+            } catch (e) {
+              console.log(e.response);
+              setError(e.response.data.message);
+            }
           }}
         >
           Create
