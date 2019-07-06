@@ -3,31 +3,43 @@ import axios from "axios";
 
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 
-export default ({ name, id, setContainers }) => {
+export default ({ name, id, running, setContainers }) => {
+  const doAction = async action => {
+    await axios.post(`/docker/containers/${id}/${action}`);
+    const res = await axios.get("/docker/containers");
+    setContainers(res.data.containers);
+  };
+
   return (
-    <Card style={{ width: "14rem" }}>
+    <Card style={{ width: "16rem" }}>
       <Card.Header>{name}</Card.Header>
-      <Card.Footer>
-        <Row>
-          <Col>
+      <Card.Footer className="d-flex justify-content-around">
+        {running ? (
+          <>
             <Button
-              onClick={async () => {
-                await axios.post(`/docker/containers/${id}/stop`);
-                const res = await axios.get("/docker/containers");
-                setContainers(res.data.containers);
-              }}
+              variant="success"
+              onClick={() =>
+                window.open(`http://${window.location.hostname}:8443`)
+              }
             >
+              Open
+            </Button>
+            <Button onClick={() => doAction("stop")} variant="danger">
               Stop
             </Button>
-          </Col>
-
-          <Col>
-            <Button>Kill</Button>
-          </Col>
-        </Row>
+            <Button onClick={() => doAction("kill")} variant="danger">
+              Kill
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="success">Start</Button>
+            <Button onClick={() => doAction("remove")} variant="danger">
+              Remove
+            </Button>
+          </>
+        )}
       </Card.Footer>
     </Card>
   );
