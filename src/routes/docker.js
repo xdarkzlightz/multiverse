@@ -29,9 +29,7 @@ router.post('/containers', async (req, res) => {
       name: req.body.name
     })
 
-    container.start(() => {
-      res.send('OK')
-    })
+    container.start(() => res.status(204).send())
   } catch (e) {
     console.log(e.stack)
     if (e.message.includes('(HTTP code 409) unexpected - Conflict.')) {
@@ -55,7 +53,7 @@ router.post('/containers/:id/stop', async (req, res) => {
   try {
     const container = await docker.getContainer(req.params.id)
     await container.stop()
-    res.status(200)
+    res.status(204).send()
   } catch (e) {
     console.log(e.stack)
   }
@@ -65,7 +63,7 @@ router.post('/containers/:id/kill', async (req, res) => {
   try {
     const container = await docker.getContainer(req.params.id)
     await container.kill()
-    res.status(204)
+    res.status(204).send()
   } catch (e) {
     console.log(e.stack)
   }
@@ -75,7 +73,7 @@ router.post('/containers/:id/remove', async (req, res) => {
   try {
     const container = await docker.getContainer(req.params.id)
     await container.remove()
-    res.status(204)
+    res.status(204).send()
   } catch (e) {
     console.log(e.stack)
   }
