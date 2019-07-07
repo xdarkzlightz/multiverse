@@ -77,7 +77,7 @@ export default () => {
           />
         </Form.Group>
         <Button
-          variant="primary"
+          variant="success"
           onClick={async e => {
             try {
               if (!name) {
@@ -91,7 +91,7 @@ export default () => {
                 password,
                 port,
                 auth,
-                path
+                path: path + name
               });
               setSubmitted(true);
             } catch (e) {

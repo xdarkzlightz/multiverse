@@ -11,9 +11,13 @@ export default ({ name, id, running, port, setContainers }) => {
     setContainers(res.data.containers);
   };
 
+  const cardStyle = { width: "16rem" };
+
   return (
-    <Card style={{ width: "16rem" }}>
-      <Card.Header>{name.replace(/_/g, " ")}</Card.Header>
+    <Card style={cardStyle} bg="secondary" text="light">
+      <Card.Header className="text-center">
+        {name.replace(/_/g, " ")}
+      </Card.Header>
       <Card.Footer className="d-flex justify-content-around">
         {running ? (
           <>
