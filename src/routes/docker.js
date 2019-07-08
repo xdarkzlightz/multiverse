@@ -24,10 +24,11 @@ router.get('/containers', async (req, res) => {
 })
 
 router.post('/containers', async (req, res) => {
+  let container
   try {
     const http = req.body.http ? '--allow-http' : ''
     const auth = req.body.auth ? '' : '--no-auth'
-    const container = await docker.createContainer({
+    container = await docker.createContainer({
       Image: 'codercom/code-server',
       Env: [`PORT=${req.body.port}`, `PASSWORD=${req.body.password}`],
       Entrypoint: ['dumb-init', 'code-server', http, auth],
@@ -40,13 +41,25 @@ router.post('/containers', async (req, res) => {
       }
     })
 
-    container.start(() => res.status(204).send())
+    await container.start()
+    res.status(204).send()
   } catch (e) {
     console.log(e.stack)
     if (e.message.includes('(HTTP code 409) unexpected - Conflict.')) {
       res
         .status(400)
         .send({ message: `Project name ${req.body.name} is in use.` })
+    } else if (
+      e.message.includes(
+        `Bind for 0.0.0.0:${req.body.port} failed: port is already allocated`
+      )
+    ) {
+      await container.remove()
+      res.status(400).send({
+        message: `Port ${
+          req.body.port
+        } is already in use, please use a different port`
+      })
     }
   }
 })

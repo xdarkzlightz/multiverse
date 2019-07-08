@@ -53,13 +53,17 @@ export default () => {
           />
         </Form.Group>
         <Form.Group>
-          <Form.Label>Project Path</Form.Label>
+          <Form.Label>
+            Project Path (Please specify an absolute path)
+          </Form.Label>
           <Form.Control
             type="text"
             onChange={e => setPath(e.target.value)}
             value={path}
           />
-          <Form.Text className="text-muted">{path + name}</Form.Text>
+          <Form.Text className="text-muted">
+            {path + name.replace(/\s/g, "-")}
+          </Form.Text>
         </Form.Group>
         <Form.Group>
           <Form.Label>Options</Form.Label>
@@ -84,11 +88,15 @@ export default () => {
                 return setError("You must have a project name.");
               } else if (!password && auth) {
                 return setError("You must have a password");
+              } else if (!port) {
+                return setError("You must have a port");
+              } else if (!path) {
+                return setError("You must have a project path");
               }
               await axios.post("/docker/containers", {
-                name: name.replace(/\s/g, "_"),
+                name: name.replace(/\s/g, "-"),
                 http,
-                password,
+                password: auth ? password : undefined,
                 port,
                 auth,
                 path: path + name
