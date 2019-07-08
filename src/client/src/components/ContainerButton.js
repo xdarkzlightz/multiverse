@@ -17,7 +17,7 @@ export default ({ variant, onClick }) => {
   let color;
   if (variant === "open") {
     icon = faExternalLinkAlt;
-    onClick = color = "green";
+    color = "green";
   } else if (variant === "start") {
     icon = faPlayCircle;
     color = "green";

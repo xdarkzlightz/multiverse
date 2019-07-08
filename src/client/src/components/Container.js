@@ -43,7 +43,7 @@ export default ({ name, id, running, port, setContainers }) => {
             </div>
           </div>
         ) : (
-          <div class="d-flex">
+          <div className="d-flex">
             <ContainerButton
               variant="start"
               onClick={() => doAction("start")}
