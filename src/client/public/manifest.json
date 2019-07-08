@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Multiverse",
+  "name": "Multiverse is a utility for creating and managing instant dev environments",
   "icons": [
     {
       "src": "favicon.ico",
