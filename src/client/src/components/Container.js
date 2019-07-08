@@ -16,7 +16,7 @@ export default ({ name, id, running, port, setContainers }) => {
   return (
     <Card style={cardStyle} bg="secondary" text="light">
       <Card.Header className="text-center">
-        {name.replace(/_/g, " ")}
+        {name.replace(/-/g, " ")}
       </Card.Header>
       <Card.Footer>
         {running ? (
