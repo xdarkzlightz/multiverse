@@ -1,6 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const basicAuth = require('express-basic-auth')
+const path = require('path')
 
 const docker = require('./routes/docker')
 
@@ -12,11 +13,10 @@ app.use(
     challenge: true
   })
 )
+app.use(express.static(path.join(__dirname, 'client/build')))
 
 app.get('/', (req, res) => {
-  res.send({
-    message: 'Index endpoint, enpoint is for sending the frontend content'
-  })
+  res.sendFile(path.join(__dirname, '/client/build/index.html'))
 })
 
 app.use('/docker', docker)
