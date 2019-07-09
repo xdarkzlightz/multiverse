@@ -1,11 +1,14 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const basicAuth = require('express-basic-auth')
+const logger = require('morgan')
+const winston = require('./config/winston')
 const path = require('path')
 
 const docker = require('./routes/docker')
 
 const app = express()
+app.use(logger('combined', { stream: winston.stream }))
 app.use(bodyParser.json())
 app.use(
   basicAuth({
