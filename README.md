@@ -15,7 +15,7 @@ PORT (Default - 3000)
 To make installation easy here's a one liner. Replace MyPassword with your password.
 In order for multiverse to create and manage code-server instances a volume needs to be created for your docker.sock
 
-`docker run -it -e PASSWORD="MyPassword" -v /var/run/docker.sock:/var/run/docker.sock xdarkzlightz/multiverse`
+`docker run -it -e PASSWORD="MyPassword" -v /var/run/docker.sock:/var/run/docker.sock -p 3000:3000 xdarkzlightz/multiverse`
 
 ### Manual (Linux)
 
