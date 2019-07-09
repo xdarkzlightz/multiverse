@@ -26,6 +26,17 @@ router.get('/containers', async (req, res) => {
 router.post('/containers', async (req, res) => {
   let container
   try {
+    const ExposedPorts = { [req.body.port]: {} }
+    const PortBindings = { [req.body.port]: [{ HostPort: req.body.port }] }
+
+    console.log(req.body.ports)
+    req.body.ports.forEach(p => {
+      const [host, cont] = p.split(':')
+
+      ExposedPorts[cont] = {}
+      PortBindings[cont] = [{ HostPort: host }]
+    })
+
     const http = req.body.http ? '--allow-http' : ''
     const auth = req.body.auth ? '' : '--no-auth'
     container = await docker.createContainer({
@@ -33,11 +44,11 @@ router.post('/containers', async (req, res) => {
       Env: [`PORT=${req.body.port}`, `PASSWORD=${req.body.password}`],
       Entrypoint: ['dumb-init', 'code-server', http, auth],
       name: req.body.name,
-      ExposedPorts: { [req.body.port]: {} },
+      ExposedPorts,
       Labels: { [`coder.port`]: req.body.port },
       HostConfig: {
-        PortBindings: { [req.body.port]: [{ HostPort: req.body.port }] },
-        Binds: [`${req.body.path}:/home/coder/project`]
+        PortBindings,
+        Binds: [`${req.body.path}:/home/coder/project`, ...req.body.volumes]
       }
     })
 

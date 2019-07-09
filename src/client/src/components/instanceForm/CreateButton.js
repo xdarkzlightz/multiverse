@@ -5,7 +5,7 @@ import axios from "axios";
 import Button from "react-bootstrap/Button";
 
 export default ({ onError, data }) => {
-  const { name, password, auth, port, path, http } = data;
+  const { name, password, auth, port, path, http, volumes, ports } = data;
   const [submitted, setSubmitted] = useState(false);
   if (submitted) return <Redirect to="/" />;
 
@@ -30,7 +30,9 @@ export default ({ onError, data }) => {
             path: path + `/${name}`,
             http,
             port,
-            auth
+            auth,
+            volumes,
+            ports
           });
           setSubmitted(true);
         } catch (e) {
