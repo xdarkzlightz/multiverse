@@ -1,0 +1,66 @@
+// DARK: #141922
+// LIGHT: #F1F2F5
+// MAIN: #637488
+// LIGHT ACCENT: #89AFB5
+// DARK ACCENT: #3DA4CD
+
+$body-bg: #141922;
+$body-color: #f1f2f5;
+
+$theme-colors: (
+  "primary": #637488,
+  "success": #337e9c,
+  "light": #f1f2f5,
+  "dark": #141922,
+  "secondary": #1e2633,
+  "danger": #963c23
+);
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+@import url("https://fonts.googleapis.com/css?family=Raleway:400,400i&display=swap");
+
+body {
+  font-family: "Raleway", sans-serif;
+}
+
+.btn {
+  border-radius: 0;
+  border: 0 none;
+}
+
+.card {
+  border-radius: 0;
+  border: 0 none;
+}
+
+.card-header {
+  border: 0 none;
+}
+
+.card-footer {
+  border: 0 none;
+}
+
+.form-control {
+  background-color: map-get($theme-colors, "secondary");
+  border-radius: 0;
+  border: 0 none;
+}
+
+.form-control:focus {
+  background-color: #263040;
+  border: 0 none;
+  outline: none;
+  box-shadow: none;
+}
+
+.form-control:disabled {
+  background-color: #191f29;
+  border: 0 none;
+  outline: none;
+  box-shadow: none;
+}
+
+.alert {
+  border-radius: 0;
+}
