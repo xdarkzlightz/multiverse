@@ -29,7 +29,6 @@ router.post('/containers', async (req, res) => {
     const ExposedPorts = { [req.body.port]: {} }
     const PortBindings = { [req.body.port]: [{ HostPort: req.body.port }] }
 
-    console.log(req.body.ports)
     req.body.ports.forEach(p => {
       const [host, cont] = p.split(':')
 
@@ -108,6 +107,16 @@ router.post('/containers/:id/remove', async (req, res) => {
   try {
     const container = await docker.getContainer(req.params.id)
     await container.remove()
+    res.status(204).send()
+  } catch (e) {
+    console.log(e.stack)
+  }
+})
+
+router.post('/containers/:id/start', async (req, res) => {
+  try {
+    const container = await docker.getContainer(req.params.id)
+    await container.start()
     res.status(204).send()
   } catch (e) {
     console.log(e.stack)
