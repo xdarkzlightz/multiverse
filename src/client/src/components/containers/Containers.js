@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 import DockerContainer from "./Container";
@@ -11,14 +11,15 @@ export default () => {
   const [error, setError] = useState("");
 
   if (error) return <h1>{error}</h1>;
-  if (!containers.length && !error) {
-    axios
-      .get("/docker/containers")
-      .then(res => setContainers(res.data.containers))
-      .catch(err => {
-        setError(err.message);
-      });
-  }
+
+  useEffect(() => {
+    if (!containers.length && !error) {
+      axios
+        .get("/docker/containers")
+        .then(res => setContainers(res.data.containers))
+        .catch(err => setError(err.message));
+    }
+  }, [containers.length, error]);
 
   return (
     <Container>
