@@ -9,15 +9,17 @@ const docker = new Docker()
 router.get(
   '/containers',
   asyncHandler(async (req, res) => {
-    const containers = await docker.listContainers({ all: true })
-    const filtered = containers.filter(c => c.Image === 'codercom/code-server')
+    const containers = await docker.listContainers({
+      all: true,
+      filters: { label: ['multiverse=true'] }
+    })
 
     res.send({
-      containers: filtered.map(c => ({
+      containers: containers.map(c => ({
         name: c.Names[0].substring(1),
         id: c.Id,
         running: c.State === 'running',
-        port: c.Labels['coder.port'] || '8443'
+        port: c.Labels['multiverse.port'] || '8443'
       }))
     })
   })
@@ -27,13 +29,13 @@ router.post(
   '/containers',
   asyncHandler(async (req, res) => {
     const containers = await docker.listContainers({
-      all: true
+      all: true,
+      filters: { label: ['multiverse=true'] }
     })
-    const filtered = containers.filter(c => c.Image === 'codercom/code-server')
     let nameExists
     let portInUse
 
-    filtered.forEach(c => {
+    containers.forEach(c => {
       if (c.Names[0] === `/${req.body.name}`) return (nameExists = true)
       if (portInUse) return
       c.Ports.forEach(p => {
@@ -74,7 +76,7 @@ router.post(
       Entrypoint: ['dumb-init', 'code-server', http, auth],
       name: req.body.name,
       ExposedPorts,
-      Labels: { [`coder.port`]: req.body.port },
+      Labels: { multiverse: 'true', [`multiverse.port`]: req.body.port },
       HostConfig: {
         PortBindings,
         Binds: [`${req.body.path}:/home/coder/project`, ...req.body.volumes]
@@ -89,13 +91,12 @@ router.post(
 router.post(
   '/containers/:id/stop',
   asyncHandler(async (req, res) => {
-    try {
-      const container = await docker.getContainer(req.params.id)
-      await container.stop()
-      res.status(204).send()
-    } catch (e) {
-      console.log(e.stack)
-    }
+    const container = await docker.getContainer(req.params.id)
+    const details = await container.inspect()
+    if (!details.Config.Labels.multiverse) return res.status(403).send()
+
+    await container.stop()
+    res.status(204).send()
   })
 )
 
@@ -103,6 +104,9 @@ router.post(
   '/containers/:id/kill',
   asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
+    const details = await container.inspect()
+    if (!details.Config.Labels.multiverse) return res.status(403).send()
+
     await container.kill()
     res.status(204).send()
   })
@@ -112,6 +116,9 @@ router.post(
   '/containers/:id/remove',
   asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
+    const details = await container.inspect()
+    if (!details.Config.Labels.multiverse) return res.status(403).send()
+
     await container.remove()
     res.status(204).send()
   })
@@ -121,6 +128,9 @@ router.post(
   '/containers/:id/start',
   asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
+    const details = await container.inspect()
+    if (!details.Config.Labels.multiverse) return res.status(403).send()
+
     await container.start()
     res.status(204).send()
   })
