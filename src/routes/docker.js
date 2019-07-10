@@ -1,11 +1,14 @@
 const express = require('express')
 const Docker = require('dockerode')
 
+const asyncHandler = require('../utils/asyncHandler')
+
 const router = express.Router()
 const docker = new Docker()
 
-router.get('/containers', async (req, res) => {
-  try {
+router.get(
+  '/containers',
+  asyncHandler(async (req, res) => {
     const containers = await docker.listContainers({ all: true })
     const filtered = containers.filter(c => c.Image === 'codercom/code-server')
 
@@ -17,17 +20,46 @@ router.get('/containers', async (req, res) => {
         port: c.Labels['coder.port'] || '8443'
       }))
     })
-  } catch (e) {
-    console.log(`${e.stack}`)
-    res.status(500).send({ message: 'Something went wrong...' })
-  }
-})
+  })
+)
 
-router.post('/containers', async (req, res) => {
-  let container
-  try {
+router.post(
+  '/containers',
+  asyncHandler(async (req, res) => {
+    const containers = await docker.listContainers({
+      all: true
+    })
+    const filtered = containers.filter(c => c.Image === 'codercom/code-server')
+    let nameExists
+    let portInUse
+
+    filtered.forEach(c => {
+      if (c.Names[0] === `/${req.body.name}`) return (nameExists = true)
+      if (portInUse) return
+      c.Ports.forEach(p => {
+        const codrPort = `${p.PublicPort}` === req.body.port
+        const addPort = req.body.ports
+          .map(p => p.split(':')[0])
+          .includes(`${p.PublicPort}`)
+        if (codrPort || addPort) {
+          portInUse = p.PublicPort
+        }
+      })
+    })
+
+    if (nameExists) {
+      return res.status(400).send({
+        message: `A project with the name ${req.body.name} already exists`
+      })
+    } else if (portInUse) {
+      return res.status(400).send({
+        message: `Host port ${portInUse} is in use`
+      })
+    }
     const ExposedPorts = { [req.body.port]: {} }
     const PortBindings = { [req.body.port]: [{ HostPort: req.body.port }] }
+    const http = req.body.http ? '--allow-http' : ''
+    const auth = req.body.auth ? '' : '--no-auth'
 
     req.body.ports.forEach(p => {
       const [host, cont] = p.split(':')
@@ -36,9 +68,7 @@ router.post('/containers', async (req, res) => {
       PortBindings[cont] = [{ HostPort: host }]
     })
 
-    const http = req.body.http ? '--allow-http' : ''
-    const auth = req.body.auth ? '' : '--no-auth'
-    container = await docker.createContainer({
+    const container = await docker.createContainer({
       Image: 'codercom/code-server',
       Env: [`PORT=${req.body.port}`, `PASSWORD=${req.body.password}`],
       Entrypoint: ['dumb-init', 'code-server', http, auth],
@@ -53,74 +83,47 @@ router.post('/containers', async (req, res) => {
 
     await container.start()
     res.status(204).send()
-  } catch (e) {
-    console.log(e.stack)
-    if (e.message.includes('(HTTP code 409) unexpected - Conflict.')) {
-      res
-        .status(400)
-        .send({ message: `Project name ${req.body.name} is in use.` })
-    } else if (
-      e.message.includes(
-        `Bind for 0.0.0.0:${req.body.port} failed: port is already allocated`
-      )
-    ) {
-      await container.remove()
-      res.status(400).send({
-        message: `Port ${
-          req.body.port
-        } is already in use, please use a different port`
-      })
+  })
+)
+
+router.post(
+  '/containers/:id/stop',
+  asyncHandler(async (req, res) => {
+    try {
+      const container = await docker.getContainer(req.params.id)
+      await container.stop()
+      res.status(204).send()
+    } catch (e) {
+      console.log(e.stack)
     }
-  }
-})
+  })
+)
 
-router.get('/containers/:id', async (req, res) => {
-  try {
-    const container = await docker.getContainer(req.params.id)
-    res.send({ container: { id: container.id } })
-  } catch (e) {
-    console.log(e.stack)
-  }
-})
-
-router.post('/containers/:id/stop', async (req, res) => {
-  try {
-    const container = await docker.getContainer(req.params.id)
-    await container.stop()
-    res.status(204).send()
-  } catch (e) {
-    console.log(e.stack)
-  }
-})
-
-router.post('/containers/:id/kill', async (req, res) => {
-  try {
+router.post(
+  '/containers/:id/kill',
+  asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
     await container.kill()
     res.status(204).send()
-  } catch (e) {
-    console.log(e.stack)
-  }
-})
+  })
+)
 
-router.post('/containers/:id/remove', async (req, res) => {
-  try {
+router.post(
+  '/containers/:id/remove',
+  asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
     await container.remove()
     res.status(204).send()
-  } catch (e) {
-    console.log(e.stack)
-  }
-})
+  })
+)
 
-router.post('/containers/:id/start', async (req, res) => {
-  try {
+router.post(
+  '/containers/:id/start',
+  asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
     await container.start()
     res.status(204).send()
-  } catch (e) {
-    console.log(e.stack)
-  }
-})
+  })
+)
 
 module.exports = router
