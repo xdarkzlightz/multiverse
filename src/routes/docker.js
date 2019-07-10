@@ -16,7 +16,7 @@ router.get(
 
     res.send({
       containers: containers.map(c => ({
-        name: c.Names[0].substring(1),
+        name: c.Labels['multiverse.project'],
         id: c.Id,
         running: c.State === 'running',
         port: c.Labels['multiverse.port'] || '8443'
@@ -36,7 +36,9 @@ router.post(
     let portInUse
 
     containers.forEach(c => {
-      if (c.Names[0] === `/${req.body.name}`) return (nameExists = true)
+      if (c.Labels['multiverse.project'] === req.body.name) {
+        return (nameExists = true)
+      }
       if (portInUse) return
       c.Ports.forEach(p => {
         const codrPort = `${p.PublicPort}` === req.body.port
@@ -76,7 +78,11 @@ router.post(
       Entrypoint: ['dumb-init', 'code-server', http, auth],
       name: req.body.name,
       ExposedPorts,
-      Labels: { multiverse: 'true', [`multiverse.port`]: req.body.port },
+      Labels: {
+        multiverse: 'true',
+        [`multiverse.port`]: req.body.port,
+        [`multiverse.project`]: req.body.name
+      },
       HostConfig: {
         PortBindings,
         Binds: [`${req.body.path}:/home/coder/project`, ...req.body.volumes]
