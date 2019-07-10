@@ -13,9 +13,10 @@ router.get(
       all: true,
       filters: { label: ['multiverse=true'] }
     })
+    const filtered = containers.filter(c => c.Image === 'codercom/code-server')
 
     res.send({
-      containers: containers.map(c => ({
+      containers: filtered.map(c => ({
         name: c.Labels['multiverse.project'],
         id: c.Id,
         running: c.State === 'running',
@@ -32,10 +33,12 @@ router.post(
       all: true,
       filters: { label: ['multiverse=true'] }
     })
+    const filtered = containers.filter(c => c.Image === 'codercom/code-server')
+
     let nameExists
     let portInUse
 
-    containers.forEach(c => {
+    filtered.forEach(c => {
       if (c.Labels['multiverse.project'] === req.body.name) {
         return (nameExists = true)
       }
