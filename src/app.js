@@ -2,10 +2,11 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const basicAuth = require('express-basic-auth')
 const logger = require('morgan')
-const winston = require('./config/winston')
+const winston = require('./utils/winston')
 const path = require('path')
 
 const docker = require('./routes/docker')
+const serverErrorHandler = require('./errorHandlers/serverError')
 
 const app = express()
 app.use(logger('combined', { stream: winston.stream }))
@@ -23,5 +24,6 @@ app.get('/', (req, res) => {
 })
 
 app.use('/docker', docker)
+app.use(serverErrorHandler)
 
 module.exports = app
