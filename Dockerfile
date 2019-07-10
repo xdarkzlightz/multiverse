@@ -1,21 +1,19 @@
-FROM node:8
-
-# Set the working directory
+# Create a client build
+FROM node:8-alpine as builder
 WORKDIR /usr/app
-
-# Copy the package.json for the server and client
-COPY ./package.json .
-COPY ./src/client/package.json src/client
-
-# Install the servers and clients dependencies
+COPY ./src/client/package.json .
 RUN yarn --production
-RUN yarn --cwd "src/client" --production
+COPY ./src/client .
+RUN yarn build
 
-# Copy the rest of the project
+# Final build with client
+FROM node:8-alpine
+WORKDIR /usr/app
+COPY ./package.json .
+RUN yarn --production
 COPY . .
-
-# Create a production build of the client
-RUN yarn --cwd "src/client" build
-
+# Remove the client directory that gets copied over since it gets replaced with the built client
+RUN rm -rf src/client
+COPY --from=builder /usr/app/build src/client
 # Start the server
 ENTRYPOINT ["yarn", "start"]
