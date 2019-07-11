@@ -1,6 +1,6 @@
 {
   "name": "multiverse",
-  "version": "v0.2.1",
+  "version": "v0.3.0",
   "description": "Multiverse is a web app for managing remote instances of code-server",
   "main": "src/index.js",
   "scripts": {
