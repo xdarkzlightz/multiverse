@@ -102,7 +102,12 @@ router.post(
   asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
     const details = await container.inspect()
-    if (!details.Config.Labels.multiverse) return res.status(403).send()
+    if (
+      !details.Config.Labels.multiverse ||
+      !details.Config.Image === 'codercom/code-server'
+    ) {
+      return res.status(403).send()
+    }
 
     await container.stop()
     res.status(204).send()
@@ -114,7 +119,12 @@ router.post(
   asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
     const details = await container.inspect()
-    if (!details.Config.Labels.multiverse) return res.status(403).send()
+    if (
+      !details.Config.Labels.multiverse ||
+      !details.Config.Image === 'codercom/code-server'
+    ) {
+      return res.status(403).send()
+    }
 
     await container.kill()
     res.status(204).send()
@@ -126,7 +136,12 @@ router.post(
   asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
     const details = await container.inspect()
-    if (!details.Config.Labels.multiverse) return res.status(403).send()
+    if (
+      !details.Config.Labels.multiverse ||
+      !details.Config.Image === 'codercom/code-server'
+    ) {
+      return res.status(403).send()
+    }
 
     await container.remove()
     res.status(204).send()
@@ -138,7 +153,12 @@ router.post(
   asyncHandler(async (req, res) => {
     const container = await docker.getContainer(req.params.id)
     const details = await container.inspect()
-    if (!details.Config.Labels.multiverse) return res.status(403).send()
+    if (
+      !details.Config.Labels.multiverse ||
+      !details.Config.Image === 'codercom/code-server'
+    ) {
+      return res.status(403).send()
+    }
 
     await container.start()
     res.status(204).send()
