@@ -25,7 +25,7 @@ export default ({ onError, data }) => {
           await axios.post("/api/v0/docker/containers", _data);
           setSubmitted(true);
         } catch (e) {
-          onError(e.message);
+          onError(e.response ? e.response.data : e.message);
         }
       }}
     >
