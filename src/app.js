@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/client/build/index.html'))
 })
 
-app.use('/docker', docker)
+app.use('/api/v0/docker', docker)
 app.use(serverErrorHandler)
 
 module.exports = app

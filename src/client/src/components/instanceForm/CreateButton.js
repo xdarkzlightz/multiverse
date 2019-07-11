@@ -22,7 +22,7 @@ export default ({ onError, data }) => {
       onClick={async e => {
         try {
           await Joi.validate(_data, schema);
-          await axios.post("/docker/containers", _data);
+          await axios.post("/api/v0/docker/containers", _data);
           setSubmitted(true);
         } catch (e) {
           onError(e.message);
