@@ -110,18 +110,20 @@ export default () => {
               <Form.Label>Options</Form.Label>
               <Form.Check
                 type="checkbox"
-                label="No Authentication"
-                onChange={val => {
-                  setOption("auth", !val);
+                label="Authentication"
+                onChange={e => {
+                  setOption("auth", e.target.checked);
                   setError("");
                 }}
                 value={options.auth}
+                checked={options.auth}
               />
               <Form.Check
                 type="checkbox"
                 label="Allow http"
-                onChange={val => setOption("http", !val)}
-                value={options.val}
+                onChange={e => setOption("http", e.target.checked)}
+                value={options.http}
+                checked={options.http}
               />
             </Form.Group>
           </Col>
