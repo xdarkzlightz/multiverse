@@ -9,11 +9,14 @@ import Col from "react-bootstrap/Col";
 import InstanceField from "./InstanceField";
 import CreateButton from "./CreateButton";
 
+import Joi from "joi-browser";
+import * as validators from "../../validation/validators";
+
 const defaultOptions = {
   name: "",
   password: "",
   path: "",
-  port: "8443",
+  port: "8443:8443",
   auth: true,
   http: false,
   volumes: [],
@@ -27,9 +30,17 @@ export default () => {
   const setOption = (opt, val) => setOptions({ ...options, [opt]: val });
   const [error, setError] = useState("");
 
+  const validate = (validator, val) => {
+    try {
+      Joi.validate(val, validators[validator]);
+      setError("");
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
   return (
     <Container>
-      {error ? <Alert variant="danger">{error}</Alert> : <></>}
       <Form>
         <Row>
           <Col xs={12} md={6}>
@@ -37,6 +48,7 @@ export default () => {
               label="Project Name"
               placeholder="Project Name"
               onChange={val => setOption("name", val)}
+              validator={val => validate("name", val)}
             />
           </Col>
           <Col xs={12} md={6}>
@@ -45,6 +57,7 @@ export default () => {
                 options.name.replace(/\s/g, "-")}`}
               placeholder="Absolute Path"
               onChange={val => setOption("path", val)}
+              validator={val => validate("path", val)}
             />
           </Col>
           <Col xs={12} md={6}>
@@ -54,6 +67,9 @@ export default () => {
               placeholder="Password"
               disabled={!options.auth}
               onChange={val => setOption("password", val)}
+              validator={val =>
+                options.auth ? validate("password", val) : setError("")
+              }
             />
           </Col>
           <Col xs={12} md={6}>
@@ -64,13 +80,16 @@ export default () => {
               onEnter={() =>
                 setOption("ports", [...options.ports, options.curPort])
               }
+              validator={val => (!val ? setError("") : validate("port", val))}
             />
           </Col>
           <Col xs={12} md={6}>
             <InstanceField
               label="Port"
-              placeholder={options.port}
+              placeholder="host:container"
+              def={options.port}
               onChange={val => setOption("port", val)}
+              validator={val => validate("port", val)}
             />
           </Col>
           <Col xs={12} md={6}>
@@ -81,17 +100,21 @@ export default () => {
               onEnter={() =>
                 setOption("volumes", [...options.volumes, options.curVol])
               }
+              validator={val => (!val ? setError("") : validate("volume", val))}
             />
           </Col>
         </Row>
         <Row>
-          <Col>
+          <Col xs={12} md={6}>
             <Form.Group>
               <Form.Label>Options</Form.Label>
               <Form.Check
                 type="checkbox"
                 label="No Authentication"
-                onChange={val => setOption("auth", !val)}
+                onChange={val => {
+                  setOption("auth", !val);
+                  setError("");
+                }}
                 value={options.auth}
               />
               <Form.Check
@@ -102,10 +125,11 @@ export default () => {
               />
             </Form.Group>
           </Col>
+          <Col>{error ? <Alert variant="danger">{error}</Alert> : <></>}</Col>
         </Row>
         <Row>
           <Col>
-            <CreateButton data={options} onError={err => setError(err)} />
+            <CreateButton data={options} onError={setError} />
           </Col>
         </Row>
       </Form>

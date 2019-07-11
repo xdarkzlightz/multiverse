@@ -1,9 +1,19 @@
 import React, { useState } from "react";
 import Form from "react-bootstrap/Form";
 
-export default ({ label, type, placeholder, disabled, onChange, onEnter }) => {
+export default props => {
+  let {
+    label,
+    type,
+    placeholder,
+    def,
+    disabled,
+    validator,
+    onChange,
+    onEnter
+  } = props;
   if (!type) type = "text";
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(def || "");
 
   return (
     <Form.Group>
@@ -16,12 +26,13 @@ export default ({ label, type, placeholder, disabled, onChange, onEnter }) => {
         onKeyPress={e => {
           if (e.key === "Enter") {
             setValue("");
-            onEnter();
+            if (onEnter) onEnter();
           }
         }}
         onChange={e => {
           onChange(e.target.value);
           setValue(e.target.value);
+          validator(e.target.value);
         }}
       />
     </Form.Group>
