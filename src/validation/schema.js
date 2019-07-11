@@ -1,39 +1,23 @@
 const Joi = require('@hapi/joi')
 const name = require('./name')
-const password = /^[\w@&%!#.\-^$]+$/
-const path = /^\/([\w-+.]+\/)*$/
-const port = /^[0-9]{4}:[0-9]{4}$/
-const volume = /^\/((?!-)[\w-.]+\/)*:\/((?!-)[\w-.]+\/)*$/
+const password = require('./password')
+const port = require('./port')
+const path = require('./path')
+const volume = require('./volume')
 
-module.exports = Joi.object().keys({
+const schema = Joi.object().keys({
   name,
-  password: Joi.string()
-    .trim()
-    .regex(password)
-    .min(8)
-    .max(30),
-  port: Joi.string()
-    .trim()
-    .regex(port)
-    .required(),
-  path: Joi.string()
-    .trim()
-    .regex(path)
-    .required(),
+  password,
+  port: port.required(),
+  path,
   auth: Joi.boolean().required(),
   http: Joi.boolean().required(),
   volumes: Joi.array()
-    .items(
-      Joi.string()
-        .trim()
-        .regex(volume)
-    )
+    .items(volume)
     .required(),
   ports: Joi.array()
-    .items(
-      Joi.string()
-        .trim()
-        .regex(port)
-    )
+    .items(port)
     .required()
 })
+
+module.exports = schema

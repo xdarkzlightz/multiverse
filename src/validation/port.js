@@ -1,30 +1,21 @@
 const Joi = require('@hapi/joi')
 
-const name = /^[\w-.]+$/
+const port = /^[0-9]{4}:[0-9]{4}$/
 const schema = Joi.string()
-  .label('Project Name')
+  .label('Port')
   .trim()
-  .replace(/\s/g, '-')
-  .regex(name)
-  .min(3)
-  .max(20)
-  .required()
+  .regex(port)
   .error(errs => {
     const err = errs[0]
     const label = err.context.label
-    const limit = err.context.limit
 
     switch (err.type) {
       case 'any.empty':
         throw new Error(`${label} cannot be empty`)
       case 'string.regex.base':
         throw new Error(
-          `Invalid ${label}, only characters a-z A-Z _-. are allowed`
+          `Invalid ${label}, port mappings must be formatted like "8443:8443"`
         )
-      case 'string.min':
-        throw new Error(`${label} must be at least ${limit} characters long`)
-      case 'string.max':
-        throw new Error(`${label} cannot be over ${limit} characters long`)
       default:
         console.log(err.stack)
         throw new Error(err.message)

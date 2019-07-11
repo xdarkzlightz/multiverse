@@ -1,14 +1,12 @@
 const Joi = require('@hapi/joi')
+const password = /^[\w@&%!#.\-^$]+$/
 
-const name = /^[\w-.]+$/
 const schema = Joi.string()
-  .label('Project Name')
+  .label('Password')
   .trim()
-  .replace(/\s/g, '-')
-  .regex(name)
-  .min(3)
-  .max(20)
-  .required()
+  .regex(password)
+  .min(8)
+  .max(30)
   .error(errs => {
     const err = errs[0]
     const label = err.context.label
@@ -19,7 +17,7 @@ const schema = Joi.string()
         throw new Error(`${label} cannot be empty`)
       case 'string.regex.base':
         throw new Error(
-          `Invalid ${label}, only characters a-z A-Z _-. are allowed`
+          `Invalid ${label}, only characters a-z A-Z @&%!#_.-^$ are allowed`
         )
       case 'string.min':
         throw new Error(`${label} must be at least ${limit} characters long`)
