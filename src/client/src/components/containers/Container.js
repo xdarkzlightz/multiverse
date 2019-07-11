@@ -13,7 +13,7 @@ export default ({ name, id, running, port, setContainers }) => {
       if (!confirmed) return;
     }
     await axios.post(`/api/v0/docker/containers/${id}/${action}`);
-    const res = await axios.get("/api/v1/docker/containers");
+    const res = await axios.get("/api/v0/docker/containers");
     setContainers(res.data.containers);
   };
 
