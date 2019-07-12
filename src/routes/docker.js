@@ -31,6 +31,40 @@ const getContainers = asyncHandler(async (req, res, next) => {
   next()
 })
 
+const validateContainer = (req, res, next) => {
+  const { name, port, ports } = req.body
+  const [host, cont] = port.split(':')
+
+  const nameInUse = req.containers.some(
+    c => c.Labels['multiverse.project'] === name
+  )
+  if (nameInUse) {
+    return res
+      .status(400)
+      .send(`A project with the name ${req.body.name} already exists`)
+  }
+
+  const validatePorts = p => {
+    if (`${p.PublicPort}` === host) return false
+    const iPort = ports.map(p => p.split(':')[0]).includes(`${p.PublicPort}`)
+    const hPort = ports.map(p => p.split(':')[0]).includes(`${p.PublicPort}`)
+
+    if (hPort) return false
+    return true
+  }
+
+  const portInUse = req.containers.some(c =>
+    c.Ports.some(p => validatePorts(p))
+  )
+  console.log(req.containers[0])
+
+  if (portInUse) {
+    return res.status(400).send(`Host port ${portInUse} is in use`)
+  }
+
+  next()
+}
+
 router.get('/containers', getContainers, async (req, res) => {
   res.status(200).send({
     containers: req.containers.map(c => ({
@@ -46,64 +80,41 @@ router.post(
   '/containers',
   validator.body(schema),
   getContainers,
+  validateContainer,
   asyncHandler(async (req, res) => {
-    let nameExists
-    let portInUse
-
-    req.containers.forEach(c => {
-      if (c.Labels['multiverse.project'] === req.body.name) {
-        return (nameExists = true)
-      }
-      if (portInUse) return
-      c.Ports.forEach(p => {
-        const codrPort = `${p.PublicPort}` === req.body.port
-        const addPort = req.body.ports
-          .map(p => p.split(':')[0])
-          .includes(`${p.PublicPort}`)
-        if (codrPort || addPort) {
-          portInUse = p.PublicPort
-        }
-      })
-    })
-
-    if (nameExists) {
-      return res
-        .status(400)
-        .send(`A project with the name ${req.body.name} already exists`)
-    } else if (portInUse) {
-      return res.status(400).send(`Host port ${portInUse} is in use`)
-    }
-    const ExposedPorts = { [req.body.port]: {} }
-    const PortBindings = { [req.body.port]: [{ HostPort: req.body.port }] }
-    const http = req.body.http ? '--allow-http' : ''
-    const auth = req.body.auth ? '' : '--no-auth'
-
-    req.body.ports.forEach(p => {
+    const { name, password, port, path, ports, volumes, http, auth } = req.body
+    const [host, cont] = port.split(':')
+    const ExposedPorts = { [cont]: {} }
+    const PortBindings = { [cont]: [{ HostPort: host }] }
+    ports.forEach(p => {
       const [host, cont] = p.split(':')
-
       ExposedPorts[cont] = {}
       PortBindings[cont] = [{ HostPort: host }]
     })
 
     const container = await docker.createContainer({
       Image: 'codercom/code-server',
-      Env: [`PORT=${req.body.port}`, `PASSWORD=${req.body.password}`],
-      Entrypoint: ['dumb-init', 'code-server', http, auth],
-      name: req.body.name,
+      Env: [`PORT=${cont}`, `PASSWORD=${password}`],
+      Entrypoint: [
+        'dumb-init',
+        'code-server',
+        http ? '--allow-http' : '',
+        auth ? '' : '--no-auth'
+      ],
       ExposedPorts,
       Labels: {
         multiverse: 'true',
-        [`multiverse.port`]: req.body.port,
-        [`multiverse.project`]: req.body.name
+        [`multiverse.port`]: host,
+        [`multiverse.project`]: name
       },
       HostConfig: {
         PortBindings,
-        Binds: [`${req.body.path}:/home/coder/project`, ...req.body.volumes]
+        Binds: [`${path}:/home/coder/project`, ...volumes]
       }
     })
 
     await container.start()
-    res.status(204).send()
+    res.status(201).send()
   })
 )
 
