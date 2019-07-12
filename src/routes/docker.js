@@ -1,146 +1,155 @@
 const express = require('express')
 const Docker = require('dockerode')
+const validator = require('express-joi-validation').createValidator()
+const schema = require('../validation/schema')
 
 const asyncHandler = require('../utils/asyncHandler')
 
 const router = express.Router()
 const docker = new Docker()
 
-router.get(
-  '/containers',
-  asyncHandler(async (req, res) => {
-    const containers = await docker.listContainers({
-      all: true,
-      filters: { label: ['multiverse=true'] }
-    })
-    const filtered = containers.filter(c => c.Image === 'codercom/code-server')
+const getContainer = asyncHandler(async (req, res, next) => {
+  const container = await docker.getContainer(req.params.id)
+  const details = await container.inspect()
+  if (
+    !details.Config.Labels.multiverse ||
+    !details.Config.Image === 'codercom/code-server'
+  ) {
+    return res.status(403).send()
+  }
 
-    res.send({
-      containers: filtered.map(c => ({
-        name: c.Labels['multiverse.project'],
-        id: c.Id,
-        running: c.State === 'running',
-        port: c.Labels['multiverse.port'] || '8443'
-      }))
-    })
+  req.container = container
+  next()
+})
+
+const getContainers = asyncHandler(async (req, res, next) => {
+  const containers = await docker.listContainers({
+    all: true,
+    filters: { label: ['multiverse=true'] }
   })
-)
+  req.containers = containers.filter(c => c.Image === 'codercom/code-server')
+  next()
+})
+
+const validateContainer = (req, res, next) => {
+  const { name, port, ports } = req.body
+  const [host, cont] = port.split(':')
+
+  const nameInUse = req.containers.some(
+    c => c.Labels['multiverse.project'] === name
+  )
+  if (nameInUse) {
+    return res
+      .status(400)
+      .send(`A project with the name ${req.body.name} already exists`)
+  }
+
+  const validatePorts = p => {
+    if (`${p.PublicPort}` === host) return false
+    const iPort = ports.map(p => p.split(':')[0]).includes(`${p.PublicPort}`)
+    const hPort = ports.map(p => p.split(':')[0]).includes(`${p.PublicPort}`)
+
+    if (hPort) return false
+    return true
+  }
+
+  const portInUse = req.containers.some(c =>
+    c.Ports.some(p => validatePorts(p))
+  )
+  console.log(req.containers[0])
+
+  if (portInUse) {
+    return res.status(400).send(`Host port ${portInUse} is in use`)
+  }
+
+  next()
+}
+
+router.get('/containers', getContainers, async (req, res) => {
+  res.status(200).send({
+    containers: req.containers.map(c => ({
+      id: c.Id,
+      name: c.Labels['multiverse.project'],
+      running: c.State === 'running',
+      port: c.Labels['multiverse.port'] || '8443'
+    }))
+  })
+})
 
 router.post(
   '/containers',
+  validator.body(schema),
+  getContainers,
+  validateContainer,
   asyncHandler(async (req, res) => {
-    const containers = await docker.listContainers({
-      all: true,
-      filters: { label: ['multiverse=true'] }
-    })
-    const filtered = containers.filter(c => c.Image === 'codercom/code-server')
-
-    let nameExists
-    let portInUse
-
-    filtered.forEach(c => {
-      if (c.Labels['multiverse.project'] === req.body.name) {
-        return (nameExists = true)
-      }
-      if (portInUse) return
-      c.Ports.forEach(p => {
-        const codrPort = `${p.PublicPort}` === req.body.port
-        const addPort = req.body.ports
-          .map(p => p.split(':')[0])
-          .includes(`${p.PublicPort}`)
-        if (codrPort || addPort) {
-          portInUse = p.PublicPort
-        }
-      })
-    })
-
-    if (nameExists) {
-      return res.status(400).send({
-        message: `A project with the name ${req.body.name} already exists`
-      })
-    } else if (portInUse) {
-      return res.status(400).send({
-        message: `Host port ${portInUse} is in use`
-      })
-    }
-    const ExposedPorts = { [req.body.port]: {} }
-    const PortBindings = { [req.body.port]: [{ HostPort: req.body.port }] }
-    const http = req.body.http ? '--allow-http' : ''
-    const auth = req.body.auth ? '' : '--no-auth'
-
-    req.body.ports.forEach(p => {
+    const { name, password, port, path, ports, volumes, http, auth } = req.body
+    const [host, cont] = port.split(':')
+    const ExposedPorts = { [cont]: {} }
+    const PortBindings = { [cont]: [{ HostPort: host }] }
+    ports.forEach(p => {
       const [host, cont] = p.split(':')
-
       ExposedPorts[cont] = {}
       PortBindings[cont] = [{ HostPort: host }]
     })
 
     const container = await docker.createContainer({
       Image: 'codercom/code-server',
-      Env: [`PORT=${req.body.port}`, `PASSWORD=${req.body.password}`],
-      Entrypoint: ['dumb-init', 'code-server', http, auth],
-      name: req.body.name,
+      Env: [`PORT=${cont}`, `PASSWORD=${password}`],
+      Entrypoint: [
+        'dumb-init',
+        'code-server',
+        http ? '--allow-http' : '',
+        auth ? '' : '--no-auth'
+      ],
       ExposedPorts,
       Labels: {
         multiverse: 'true',
-        [`multiverse.port`]: req.body.port,
-        [`multiverse.project`]: req.body.name
+        [`multiverse.port`]: host,
+        [`multiverse.project`]: name
       },
       HostConfig: {
         PortBindings,
-        Binds: [`${req.body.path}:/home/coder/project`, ...req.body.volumes]
+        Binds: [`${path}:/home/coder/project`, ...volumes]
       }
     })
 
     await container.start()
-    res.status(204).send()
+    res.status(201).send()
   })
 )
 
 router.post(
   '/containers/:id/stop',
+  getContainer,
   asyncHandler(async (req, res) => {
-    const container = await docker.getContainer(req.params.id)
-    const details = await container.inspect()
-    if (!details.Config.Labels.multiverse) return res.status(403).send()
-
-    await container.stop()
+    await req.container.stop()
     res.status(204).send()
   })
 )
 
 router.post(
   '/containers/:id/kill',
+  getContainer,
   asyncHandler(async (req, res) => {
-    const container = await docker.getContainer(req.params.id)
-    const details = await container.inspect()
-    if (!details.Config.Labels.multiverse) return res.status(403).send()
-
-    await container.kill()
+    await req.container.kill()
     res.status(204).send()
   })
 )
 
 router.post(
   '/containers/:id/remove',
+  getContainer,
   asyncHandler(async (req, res) => {
-    const container = await docker.getContainer(req.params.id)
-    const details = await container.inspect()
-    if (!details.Config.Labels.multiverse) return res.status(403).send()
-
-    await container.remove()
+    await req.container.remove()
     res.status(204).send()
   })
 )
 
 router.post(
   '/containers/:id/start',
+  getContainer,
   asyncHandler(async (req, res) => {
-    const container = await docker.getContainer(req.params.id)
-    const details = await container.inspect()
-    if (!details.Config.Labels.multiverse) return res.status(403).send()
-
-    await container.start()
+    await req.container.start()
     res.status(204).send()
   })
 )

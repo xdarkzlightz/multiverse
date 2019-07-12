@@ -6,8 +6,14 @@ import ContainerButton from "./ContainerButton";
 
 export default ({ name, id, running, port, setContainers }) => {
   const doAction = async action => {
-    await axios.post(`/docker/containers/${id}/${action}`);
-    const res = await axios.get("/docker/containers");
+    if (["stop", "kill", "remove"].includes(action)) {
+      const confirmed = window.confirm(
+        `You're about to ${action} ${name}, are you sure?`
+      );
+      if (!confirmed) return;
+    }
+    await axios.post(`/api/v0/docker/containers/${id}/${action}`);
+    const res = await axios.get("/api/v0/docker/containers");
     setContainers(res.data.containers);
   };
 

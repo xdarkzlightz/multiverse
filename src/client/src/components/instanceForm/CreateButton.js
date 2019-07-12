@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import { Redirect } from "react-router-dom";
 import axios from "axios";
+import Joi from "joi-browser";
 
 import Button from "react-bootstrap/Button";
+import schema from "../../validation/schema";
 
 export default ({ onError, data }) => {
-  const { name, password, auth, port, path, http, volumes, ports } = data;
+  const _data = { ...data };
+  delete _data.curVol;
+  delete _data.curPort;
+  if (!_data.auth) _data.password = undefined;
+  _data.path += `${_data.name}/`;
+
   const [submitted, setSubmitted] = useState(false);
   if (submitted) return <Redirect to="/" />;
 
@@ -14,30 +21,11 @@ export default ({ onError, data }) => {
       variant="success"
       onClick={async e => {
         try {
-          if (!name) {
-            return onError("You must have a project name.");
-          } else if (!password && auth) {
-            return onError("You must have a password");
-          } else if (!port) {
-            return onError("You must have a port");
-          } else if (!path) {
-            return onError("You must have a project path");
-          }
-
-          await axios.post("/docker/containers", {
-            name: name.replace(/\s/g, "-"),
-            password: auth ? password : undefined,
-            path: path + `/${name}`,
-            http,
-            port,
-            auth,
-            volumes,
-            ports
-          });
+          await Joi.validate(_data, schema);
+          await axios.post("/api/v0/docker/containers", _data);
           setSubmitted(true);
         } catch (e) {
-          console.log(e.response);
-          onError(e.response.data.message);
+          onError(e.response ? e.response.data : e.message);
         }
       }}
     >
