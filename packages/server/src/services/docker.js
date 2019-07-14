@@ -1,8 +1,11 @@
 const Docker = require('dockerode')
-const ContainerAccessError = require('../errors/ContainerAccessError')
-const ContainerStoppedError = require('../errors/ContainerStoppedError')
-const ContainerStartedError = require('../errors/ContainerStartedError')
-const NoContainerError = require('../errors/NoContainerError')
+const {
+  ContainerAccessError,
+  ContainerRunningError,
+  ContainerStartedError,
+  ContainerStoppedError,
+  NoContainerError
+} = require('../errors/ContainerErrors')
 
 const docker = new Docker()
 
@@ -60,6 +63,9 @@ module.exports = class DockerService {
 
   async removeContainer (id) {
     const container = await this.getContainer(id)
+    const data = await container.inspect()
+    if (data.State.Running) throw new ContainerRunningError()
+
     await container.remove()
   }
 

@@ -12,6 +12,9 @@ module.exports = (err, req, res, next) => {
     case 'NoContainerError':
       res.status(400).send(err.message)
       break
+    case 'ContainerRunningError':
+      res.status(400).send(err.message)
+      break
     default:
       next(err)
   }
