@@ -6,7 +6,7 @@ const winston = require('./utils/winston')
 const path = require('path')
 
 const docker = require('./routes/docker')
-const serverErrorHandler = require('./errorHandlers/serverError')
+const serverErrorHandler = require('./middlewares/serverErrorHandler')
 
 const app = express()
 app.use(logger('combined', { stream: winston.stream }))

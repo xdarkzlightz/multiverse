@@ -2,6 +2,7 @@ const Docker = require('dockerode')
 const ContainerAccessError = require('../errors/ContainerAccessError')
 const ContainerStoppedError = require('../errors/ContainerStoppedError')
 const ContainerStartedError = require('../errors/ContainerStartedError')
+const NoContainerError = require('../errors/NoContainerError')
 
 const docker = new Docker()
 
@@ -16,16 +17,21 @@ module.exports = class DockerService {
   }
 
   async getContainer (id) {
-    const container = await docker.getContainer(id)
-    const {
-      Config: { Labels, Image }
-    } = await container.inspect()
+    try {
+      const container = await docker.getContainer(id)
+      const {
+        Config: { Labels, Image }
+      } = await container.inspect()
 
-    if (!Labels.multiverse || !Image === 'codercom/code-server') {
-      throw new ContainerAccessError()
+      if (!Labels.multiverse || !Image === 'codercom/code-server') {
+        throw new ContainerAccessError()
+      }
+
+      return container
+    } catch (e) {
+      if (e.message.includes('no such container')) throw new NoContainerError()
+      throw e
     }
-
-    return container
   }
 
   async stopContainer (id) {

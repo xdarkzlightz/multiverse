@@ -1,5 +1,4 @@
 const DockerService = require('../services/docker')
-const logger = require('../utils/winston')
 
 const docker = new DockerService()
 
@@ -39,20 +38,15 @@ const validateContainer = (req, res, next) => {
 }
 */
 const getContainers = async (req, res) => {
-  try {
-    const containers = await docker.getContainers()
-    res.status(200).send(
-      containers.map(c => ({
-        id: c.Id,
-        name: c.Labels['multiverse.project'],
-        running: c.State === 'running',
-        port: c.Labels['multiverse.port'] || '8443'
-      }))
-    )
-  } catch (e) {
-    logger.error(e.stack)
-    res.status(500).send()
-  }
+  const containers = await docker.getContainers()
+  res.status(200).send(
+    containers.map(c => ({
+      id: c.Id,
+      name: c.Labels['multiverse.project'],
+      running: c.State === 'running',
+      port: c.Labels['multiverse.port'] || '8443'
+    }))
+  )
 }
 
 const createContainer = async (req, res) => {
@@ -61,63 +55,23 @@ const createContainer = async (req, res) => {
 }
 
 const startContainer = async (req, res) => {
-  try {
-    await docker.startContainer(req.params.id)
-    res.status(204).send()
-  } catch (e) {
-    if (e.name === 'ContainerAccessError') {
-      return res.status(403).send(e.message)
-    } else if (e.name === 'ContainerStartedError') {
-      return res.status(400).send(e.message)
-    }
-    logger.error(e.stack)
-    res.status(500).send()
-  }
+  await docker.startContainer(req.params.id)
+  res.status(204).send()
 }
 
 const stopContainer = async (req, res) => {
-  try {
-    await docker.stopContainer(req.params.id)
-    res.status(204).send()
-  } catch (e) {
-    if (e.name === 'ContainerAccessError') {
-      return res.status(403).send(e.message)
-    } else if (e.name === 'ContainerStoppedError') {
-      return res.status(400).send(e.message)
-    }
-    logger.error(e.stack)
-    res.status(500).send()
-  }
+  await docker.stopContainer(req.params.id)
+  res.status(204).send()
 }
 
 const killContainer = async (req, res) => {
-  try {
-    await docker.killContainer(req.params.id)
-    res.status(204).send()
-  } catch (e) {
-    if (e.name === 'ContainerAccessError') {
-      return res.status(403).send(e.message)
-    } else if (e.name === 'ContainerStoppedError') {
-      return res.status(400).send(e.message)
-    }
-    logger.error(e.stack)
-    res.status(500).send()
-  }
+  await docker.killContainer(req.params.id)
+  res.status(204).send()
 }
 
 const removeContainer = async (req, res) => {
-  try {
-    await docker.removeContainer(req.params.id)
-    return res.status(204).send()
-  } catch (e) {
-    if (e.name === 'ContainerAccessError') {
-      return res.status(403).send(e.message)
-    } else if (e.name === 'NoContainerError') {
-      return res.status(400).send(e.message)
-    }
-    logger.error(e.stack)
-    res.status(500).send()
-  }
+  await docker.removeContainer(req.params.id)
+  return res.status(204).send()
 }
 
 module.exports = {
