@@ -11,15 +11,15 @@ const {
 } = require('../controllers/docker')
 
 const router = express.Router()
+router.post('/containers', asyncHandler(createContainer))
+
 router.get('/containers', asyncHandler(getContainers))
 
-router.post('/containers', asyncHandler(createContainer))
+router.delete('/containers/:id', asyncHandler(removeContainer))
 
 router.post('/containers/:id/stop', asyncHandler(stopContainer))
 
 router.post('/containers/:id/kill', asyncHandler(killContainer))
-
-router.post('/containers/:id/remove', asyncHandler(removeContainer))
 
 router.post('/containers/:id/start', asyncHandler(startContainer))
 
