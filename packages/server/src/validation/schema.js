@@ -3,21 +3,16 @@ const name = require('./name')
 const password = require('./password')
 const port = require('./port')
 const path = require('./path')
-const volume = require('./volume')
+const volumes = require('./volumes')
+const ports = require('./ports.js')
 
 const schema = Joi.object().keys({
   name,
   password,
-  port: port.required(),
+  port,
   path,
-  auth: Joi.boolean().required(),
-  http: Joi.boolean().required(),
-  volumes: Joi.array()
-    .items(volume)
-    .required(),
-  ports: Joi.array()
-    .items(port)
-    .required()
+  volumes,
+  ports
 })
 
 module.exports = schema

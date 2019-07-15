@@ -2,41 +2,6 @@ const DockerService = require('../services/docker')
 
 const docker = new DockerService()
 
-/*
-const validateContainer = (req, res, next) => {
-  const { name, port, ports } = req.body
-  const [host, cont] = port.split(':')
-
-  const nameInUse = req.containers.some(
-    c => c.Labels['multiverse.project'] === name
-  )
-  if (nameInUse) {
-    return res
-      .status(400)
-      .send(`A project with the name ${req.body.name} already exists`)
-  }
-
-  const validatePorts = p => {
-    if (`${p.PublicPort}` === host) return false
-    const iPort = ports.map(p => p.split(':')[0]).includes(`${p.PublicPort}`)
-    const hPort = ports.map(p => p.split(':')[0]).includes(`${p.PublicPort}`)
-
-    if (hPort) return false
-    return true
-  }
-
-  const portInUse = req.containers.some(c =>
-    c.Ports.some(p => validatePorts(p))
-  )
-  console.log(req.containers[0])
-
-  if (portInUse) {
-    return res.status(400).send(`Host port ${portInUse} is in use`)
-  }
-
-  next()
-}
-*/
 const getContainers = async (req, res) => {
   const containers = await docker.getContainers()
   res.status(200).send(
