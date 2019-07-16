@@ -12,7 +12,9 @@ const schema = Joi.object().keys({
   port,
   path,
   volumes,
-  ports
+  ports,
+  http: Joi.boolean(),
+  auth: Joi.boolean()
 })
 
 module.exports = schema
