@@ -12,7 +12,7 @@ const {
   removeContainer,
   startContainer
 } = require('../controllers/docker')
-// const validateContainers = require('../middlewares/validateContainer')
+const validateContainers = require('../middlewares/validateContainer')
 const validationErrorHandler = require('../middlewares/validationErrorHandler')
 const schema = require('../validation/schema')
 const id = require('../validation/containerId')
@@ -21,7 +21,7 @@ const router = express.Router()
 router.post(
   '/containers',
   validator.body(schema),
-  // validateContainers,
+  validateContainers,
   asyncHandler(createContainer)
 )
 
