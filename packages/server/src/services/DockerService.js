@@ -70,12 +70,13 @@ module.exports = class DockerService {
   }
 
   async createContainer (options) {
-    const { name, password, port, path, ports, volumes, http, auth } = options
-    const [host, cont] = port.split(':')
+    let { name, password, port, path, ports, volumes, http, auth } = options
+    const [host, cont] = [port[0].toString(), port[1].toString()]
+    ports = ports || []
     const ExposedPorts = { [cont]: {} }
     const PortBindings = { [cont]: [{ HostPort: host }] }
     ports.forEach(p => {
-      const [host, cont] = p.split(':')
+      const [host, cont] = [p[0].toString(), p[1].toString()]
       ExposedPorts[cont] = {}
       PortBindings[cont] = [{ HostPort: host }]
     })

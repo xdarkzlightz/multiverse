@@ -1,4 +1,4 @@
-const Docker = require('../services/docker')
+const Docker = require('../services/DockerService')
 
 const docker = new Docker()
 
