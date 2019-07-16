@@ -9,7 +9,15 @@ const {
 
 const docker = new Docker()
 
+/**
+ * @class
+ * @description Docker service for managing code-server containers
+ */
 module.exports = class DockerService {
+  /**
+   * @description Gets an array of containers
+   * @returns Promise<Array[Container]>
+   */
   async getContainers () {
     const containers = await docker.listContainers({
       all: true,
@@ -19,6 +27,13 @@ module.exports = class DockerService {
     return containers.filter(c => c.Image === 'codercom/code-server')
   }
 
+  /**
+   * @description Gets a container by it's id
+   * @param {string} id Container id
+   * @throws ContainerAccessError
+   * @throws NoContainerError
+   * @returns Promise<Container>
+   */
   async getContainer (id) {
     try {
       const container = await docker.getContainer(id)
@@ -37,6 +52,12 @@ module.exports = class DockerService {
     }
   }
 
+  /**
+   * @description Stops a container
+   * @param {string} id Container id
+   * @throws ContainerStoppedError
+   * @returns Promise<void>
+   */
   async stopContainer (id) {
     const container = await this.getContainer(id)
     const data = await container.inspect()
@@ -45,6 +66,12 @@ module.exports = class DockerService {
     await container.stop()
   }
 
+  /**
+   * @description Starts a container
+   * @param {string} id Container id
+   * @throws ContainerStartedError
+   * @returns Promise<void>
+   */
   async startContainer (id) {
     const container = await this.getContainer(id)
     const data = await container.inspect()
@@ -53,6 +80,12 @@ module.exports = class DockerService {
     await container.start()
   }
 
+  /**
+   * @description Kills a container
+   * @param {string} id Container id
+   * @throws ContainerStoppedError
+   * @returns Promise<void>
+   */
   async killContainer (id) {
     const container = await this.getContainer(id)
     const data = await container.inspect()
@@ -61,6 +94,12 @@ module.exports = class DockerService {
     await container.kill()
   }
 
+  /**
+   * @description Removes a container
+   * @param {string} id Container id
+   * @throws ContainerRunningError
+   * @returns Promise<void>
+   */
   async removeContainer (id) {
     const container = await this.getContainer(id)
     const data = await container.inspect()
@@ -69,6 +108,21 @@ module.exports = class DockerService {
     await container.remove()
   }
 
+  /**
+   * @typedef {Object} Options
+   * @property {string} name
+   * @property {string} password
+   * @property {[number]} port
+   * @property {string} path
+   * @property {[[number]]} ports
+   * @property {[[string]]} volumes
+   * @property {boolean} http
+   * @property {auth} auth
+   *
+   * @description Creates a container
+   * @param {Options} options Container id
+   * @returns Promise<Container>
+   */
   async createContainer (options) {
     let { name, password, port, path, ports, volumes, http, auth } = options
     const [host, cont] = [port[0].toString(), port[1].toString()]

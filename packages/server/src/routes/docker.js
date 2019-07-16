@@ -18,6 +18,7 @@ const schema = require('../validation/schema')
 const id = require('../validation/containerId')
 
 const router = express.Router()
+// Creates a new container
 router.post(
   '/containers',
   validator.body(schema),
@@ -25,26 +26,31 @@ router.post(
   asyncHandler(createContainer)
 )
 
+// Gets an array of containers
 router.get('/containers', asyncHandler(getContainers))
 
+// Deletes a container by it's id
 router.delete(
   '/containers/:id',
   validator.params(id),
   asyncHandler(removeContainer)
 )
 
+// Stops a container by it's id
 router.post(
   '/containers/:id/stop',
   validator.params(id),
   asyncHandler(stopContainer)
 )
 
+// Kills a container by it's id
 router.post(
   '/containers/:id/kill',
   validator.params(id),
   asyncHandler(killContainer)
 )
 
+// Starts a container by it's id
 router.post(
   '/containers/:id/start',
   validator.params(id),
