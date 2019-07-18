@@ -1,11 +1,12 @@
 {
-  "name": "multiverse-api",
-  "version": "v0.3.0",
+  "name": "multiverse-server",
+  "version": "v0.4.0",
   "description": "Multiverse-server is a server API that manages code-server instances",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon --ignore client/ src/"
+    "dev": "nodemon --ignore client/ src/",
+    "test": "jest"
   },
   "repository": "https://github.com/xdarkzlightz/multiverse.git",
   "author": "xdarkzlightz",
@@ -18,15 +19,20 @@
     "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.0",
-    "nodemon": "^1.19.1"
+    "jest": "^24.8.0",
+    "nodemon": "^1.19.1",
+    "supertest": "^4.0.2"
   },
   "dependencies": {
     "@hapi/joi": "^15.1.0",
     "body-parser": "^1.19.0",
     "dockerode": "^2.5.8",
-    "express": "^4.17.1",
-    "express-basic-auth": "^1.2.0",
-    "express-joi-validation": "^2.0.0",
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-joi-validate": "^0.5.1",
+    "koa-morgan": "^1.0.1",
+    "koa-router": "^7.4.0",
+    "koa-static": "^5.0.0",
     "morgan": "^1.9.1",
     "winston": "^3.2.1"
   }
