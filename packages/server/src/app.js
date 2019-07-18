@@ -1,31 +1,23 @@
-const express = require('express')
-const bodyParser = require('body-parser')
-const basicAuth = require('express-basic-auth')
-const logger = require('morgan')
+const Koa = require('koa')
+const bodyParser = require('koa-bodyparser')
+const logger = require('koa-morgan')
+const join = require('path').join
+const dockerRoutes = require('./routes/container-routes')
 const winston = require('./utils/winston')
-const path = require('path')
 
-const docker = require('./routes/docker')
-const serverErrorHandler = require('./middlewares/serverErrorHandler')
+const app = new Koa()
+const env = process.env.NODE_ENV
 
-const app = express()
-app.use(logger('combined', { stream: winston.stream }))
-app.use(bodyParser.json())
-// Currently using basic authentication, one of the upcoming features is better authentication with passport & JWT
-app.use(
-  basicAuth({
-    users: { admin: process.env.PASSWORD || 'password' },
-    challenge: true
-  })
-)
-// The / endpoint serves the client, this might change later as the project progresses
-app.use(express.static(path.join(__dirname, 'client')))
+app.use(bodyParser())
+// Don't want to be logging endpoints if in a test environment
+if (env !== 'test') app.use(logger('combined', { stream: winston.stream }))
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '/client/index.html'))
+app.use(dockerRoutes.routes())
+// Multiverse-Server can optionally serve a client using the GET / endpoint
+app.use(require('koa-static')(join(__dirname, '/client')))
+
+app.on('error', (err, ctx) => {
+  if (err.status !== 400) winston.error(err.stack)
 })
-
-app.use('/api/v0/docker', docker)
-app.use(serverErrorHandler)
 
 module.exports = app

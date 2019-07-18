@@ -1,25 +1,21 @@
 const Docker = require('dockerode')
-const {
-  ContainerAccessError,
-  ContainerRunningError,
-  ContainerStartedError,
-  ContainerStoppedError,
-  NoContainerError
-} = require('../errors/ContainerErrors')
-
-const docker = new Docker()
+const FriendlyError = require('../errors/FriendlyError')
 
 /**
  * @class
  * @description Docker service for managing code-server containers
  */
 module.exports = class DockerService {
+  constructor () {
+    this.docker = new Docker()
+  }
+
   /**
    * @description Gets an array of containers
    * @returns Promise<Array[Container]>
    */
   async getContainers () {
-    const containers = await docker.listContainers({
+    const containers = await this.docker.listContainers({
       all: true,
       filters: { label: ['multiverse=true'] }
     })
@@ -30,24 +26,27 @@ module.exports = class DockerService {
   /**
    * @description Gets a container by it's id
    * @param {string} id Container id
-   * @throws ContainerAccessError
-   * @throws NoContainerError
+   * @throws {FriendlyError}
    * @returns Promise<Container>
    */
   async getContainer (id) {
     try {
-      const container = await docker.getContainer(id)
+      const container = await this.docker.getContainer(id)
       const {
         Config: { Labels, Image }
       } = await container.inspect()
 
       if (!Labels.multiverse || !Image === 'codercom/code-server') {
-        throw new ContainerAccessError()
+        throw new FriendlyError(
+          'Unable to access container, it was not created by multiverse.'
+        )
       }
 
       return container
     } catch (e) {
-      if (e.message.includes('no such container')) throw new NoContainerError()
+      if (e.message.includes('no such container')) {
+        throw new FriendlyError('Container does not exist.')
+      }
       throw e
     }
   }
@@ -61,7 +60,9 @@ module.exports = class DockerService {
   async stopContainer (id) {
     const container = await this.getContainer(id)
     const data = await container.inspect()
-    if (!data.State.Running) throw new ContainerStoppedError()
+    if (!data.State.Running) {
+      throw new FriendlyError('Container already stopped.')
+    }
 
     await container.stop()
   }
@@ -75,7 +76,9 @@ module.exports = class DockerService {
   async startContainer (id) {
     const container = await this.getContainer(id)
     const data = await container.inspect()
-    if (data.State.Running) throw new ContainerStartedError()
+    if (data.State.Running) {
+      throw new FriendlyError('Container already started.')
+    }
 
     await container.start()
   }
@@ -89,7 +92,9 @@ module.exports = class DockerService {
   async killContainer (id) {
     const container = await this.getContainer(id)
     const data = await container.inspect()
-    if (!data.State.Running) throw new ContainerStoppedError()
+    if (!data.State.Running) {
+      throw new FriendlyError('Container already stopped.')
+    }
 
     await container.kill()
   }
@@ -103,7 +108,9 @@ module.exports = class DockerService {
   async removeContainer (id) {
     const container = await this.getContainer(id)
     const data = await container.inspect()
-    if (data.State.Running) throw new ContainerRunningError()
+    if (data.State.Running) {
+      throw new FriendlyError('Cannot remove a running container.')
+    }
 
     await container.remove()
   }
@@ -124,20 +131,12 @@ module.exports = class DockerService {
    * @returns Promise<Container>
    */
   async createContainer (options) {
-    let { name, password, port, path, ports, volumes, http, auth } = options
-    const [host, cont] = [port[0].toString(), port[1].toString()]
-    ports = ports || []
-    const ExposedPorts = { [cont]: {} }
-    const PortBindings = { [cont]: [{ HostPort: host }] }
-    ports.forEach(p => {
-      const [host, cont] = [p[0].toString(), p[1].toString()]
-      ExposedPorts[cont] = {}
-      PortBindings[cont] = [{ HostPort: host }]
-    })
+    let { name, path, http, auth } = options
+    const ExposedPorts = { '8443': {} }
+    const PortBindings = { '8443': [{ HostPort: '8443' }] }
 
-    const container = await docker.createContainer({
+    const container = await this.docker.createContainer({
       Image: 'codercom/code-server',
-      Env: [`PORT=${cont}`, `PASSWORD=${password}`],
       Entrypoint: [
         'dumb-init',
         'code-server',
@@ -147,12 +146,12 @@ module.exports = class DockerService {
       ExposedPorts,
       Labels: {
         multiverse: 'true',
-        [`multiverse.port`]: host,
+        [`multiverse.port`]: '8443',
         [`multiverse.project`]: name
       },
       HostConfig: {
         PortBindings,
-        Binds: [`${path}:/home/coder/project`, ...volumes]
+        Binds: [`${path}:/home/coder/project`]
       }
     })
 
