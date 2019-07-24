@@ -24,7 +24,7 @@ module.exports.createContainer = async ctx => {
   }
 
   const container = await docker.createContainer(ctx.request.body)
-  ctx.body = container.id
+  ctx.body = { id: container.id }
   ctx.response.status = 201
 }
 
