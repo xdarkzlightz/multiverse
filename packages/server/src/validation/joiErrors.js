@@ -32,8 +32,6 @@ module.exports = errs => {
         const regex = /%LABEL|%LIMIT|%POS/g
         const msg = reasons[reason.type].replace(regex, m => variables[m])
         errors.push(msg)
-      } else if (label === 'path') {
-        errors.push("invalid path, paths must be formatted like '/foo/bar'.")
       } else {
         errors.push(reason.type)
       }
