@@ -15,8 +15,8 @@ export default () => {
   useEffect(() => {
     if (!containers.length && !error) {
       axios
-        .get("/api/v0/docker/containers")
-        .then(res => setContainers(res.data.containers))
+        .get("/api/containers")
+        .then(res => setContainers(res.data))
         .catch(err => setError(err.message));
     }
   }, [containers.length, error]);
