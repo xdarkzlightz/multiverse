@@ -71,6 +71,69 @@ describe(`POST ${BASE_URL}`, () => {
     await expect(container.inspect()).resolves.not.toThrow()
     containerId = response.body.id
   })
+
+  it('should validate the body data', async () => {
+    let response = await request(app)
+      .post(BASE_URL)
+      .send({})
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('name is required.')
+
+    response = await request(app)
+      .post(BASE_URL)
+      .send({
+        name: ''
+      })
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('name cannot be empty.')
+
+    response = await request(app)
+      .post(BASE_URL)
+      .send({
+        name: '&&&&'
+      })
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('invalid character in name (a-z A-Z .-_ only).')
+
+    response = await request(app)
+      .post(BASE_URL)
+      .send({
+        name: 'a'
+      })
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('name has to be over 3 characters.')
+
+    response = await request(app)
+      .post(BASE_URL)
+      .send({
+        name: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      })
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('name has to be under 20 characters.')
+
+    response = await request(app)
+      .post(BASE_URL)
+      .send({
+        name: 3333
+      })
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe("name has to be type 'string'.")
+
+    response = await request(app)
+      .post(BASE_URL)
+      .send({
+        name: 'abcd'
+      })
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('path is required.')
+  })
 })
 
 describe(`DELETE ${BASE_URL}/:id`, () => {
