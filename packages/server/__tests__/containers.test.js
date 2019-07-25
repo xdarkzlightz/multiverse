@@ -134,6 +134,23 @@ describe(`POST ${BASE_URL}`, () => {
     expect(response.status).toBe(400)
     expect(response.text).toBe('path is required.')
   })
+
+  it('should 400 if the project name already exists', async () => {
+    const response = await request(app)
+      .post(BASE_URL)
+      .send({
+        name: 'multiverse-jest-test',
+        path: volume.name
+      })
+
+    const responseTwo = await request(app)
+      .post(BASE_URL)
+      .send({ name: 'multiverse-jest-test', path: volume.name })
+
+    expect(responseTwo.status).toBe(400)
+
+    await removeContainer(response.body.id)
+  })
 })
 
 describe(`DELETE ${BASE_URL}/:id`, () => {
@@ -155,6 +172,43 @@ describe(`DELETE ${BASE_URL}/:id`, () => {
     expect(response.status).toBe(400)
     expect(response.text).toBe(
       'Invalid URL Parameters - child "id" fails because ["id" with value "535[{&[{53=(=)}]}]" fails to match the required pattern: /^[a-z0-9]*$/]'
+    )
+  })
+
+  it('should 400 if the container is running', async () => {
+    const startedContainerId = await createContainer()
+    const container = await docker.getContainer(startedContainerId)
+    await container.start()
+    const response = await request(app).delete(
+      `${BASE_URL}/${startedContainerId}`
+    )
+    await removeContainer(startedContainerId)
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('Cannot remove a running container.')
+  })
+
+  // For these 2 specific tests It's only for the containers/:id/* endpoints
+  // This gets handled through the docker service in the DockerService.getContainer() method
+  // So It'd be pointless to repeat the same code across multiple tests
+  it("should 400 if the container doesn't exist", async () => {
+    const response = await request(app).delete(
+      `${BASE_URL}/53624635honeuhoneuh53`
+    )
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('Container does not exist.')
+  })
+
+  it('should 400 if it cannot access the container', async () => {
+    const container = await docker.createContainer({
+      Image: 'hello-world'
+    })
+
+    const response = await request(app).delete(`${BASE_URL}/${container.id}`)
+
+    await container.remove()
+    expect(response.status).toBe(400)
+    expect(response.text).toBe(
+      'Unable to access container, it was not created by multiverse.'
     )
   })
 })
@@ -186,6 +240,16 @@ describe(`POST ${BASE_URL}/:id/stop`, () => {
       'Invalid URL Parameters - child "id" fails because ["id" with value "$}({[]][}" fails to match the required pattern: /^[a-z0-9]*$/]'
     )
   })
+
+  it('should 400 if the container is already stopped', async () => {
+    const stoppedContainerId = await createContainer()
+    const response = await request(app).post(
+      `${BASE_URL}/${stoppedContainerId}/stop`
+    )
+    await removeContainer(stoppedContainerId)
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('Container already stopped.')
+  })
 })
 
 describe(`POST ${BASE_URL}/:id/kill`, () => {
@@ -215,6 +279,16 @@ describe(`POST ${BASE_URL}/:id/kill`, () => {
       'Invalid URL Parameters - child "id" fails because ["id" with value "]+*+)" fails to match the required pattern: /^[a-z0-9]*$/]'
     )
   })
+
+  it('should 400 if the container is already stopped', async () => {
+    const stoppedContainerId = await createContainer()
+    const response = await request(app).post(
+      `${BASE_URL}/${stoppedContainerId}/kill`
+    )
+    await removeContainer(stoppedContainerId)
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('Container already stopped.')
+  })
 })
 
 describe(`POST ${BASE_URL}/:id/start`, () => {
@@ -239,5 +313,17 @@ describe(`POST ${BASE_URL}/:id/start`, () => {
     expect(response.text).toBe(
       'Invalid URL Parameters - child "id" fails because ["id" with value "}({!++" fails to match the required pattern: /^[a-z0-9]*$/]'
     )
+  })
+
+  it('should 400 if the container is already started', async () => {
+    const startedContainerId = await createContainer()
+    const container = await docker.getContainer(startedContainerId)
+    await container.start()
+    const response = await request(app).post(
+      `${BASE_URL}/${startedContainerId}/start`
+    )
+    await removeContainer(startedContainerId)
+    expect(response.status).toBe(400)
+    expect(response.text).toBe('Container already started.')
   })
 })
