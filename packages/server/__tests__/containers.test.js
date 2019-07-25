@@ -85,6 +85,15 @@ describe(`DELETE ${BASE_URL}/:id`, () => {
     const container = await docker.getContainer(containerId)
     await expect(container.inspect()).rejects.toThrow()
   })
+
+  it('should validate the id', async () => {
+    const response = await request(app).delete(`${BASE_URL}/535[{&[{53=(=)}]}]`)
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe(
+      'Invalid URL Parameters - child "id" fails because ["id" with value "535[{&[{53=(=)}]}]" fails to match the required pattern: /^[a-z0-9]*$/]'
+    )
+  })
 })
 
 describe(`POST ${BASE_URL}/:id/stop`, () => {
@@ -104,6 +113,15 @@ describe(`POST ${BASE_URL}/:id/stop`, () => {
     const container = await docker.getContainer(containerId)
     const details = await container.inspect()
     expect(details.State.Running).toBe(false)
+  })
+
+  it('should validate the id', async () => {
+    const response = await request(app).post(`${BASE_URL}/$}({[]][}/stop`)
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe(
+      'Invalid URL Parameters - child "id" fails because ["id" with value "$}({[]][}" fails to match the required pattern: /^[a-z0-9]*$/]'
+    )
   })
 })
 
@@ -125,6 +143,15 @@ describe(`POST ${BASE_URL}/:id/kill`, () => {
     const details = await container.inspect()
     expect(details.State.Running).toBe(false)
   })
+
+  it('should validate the id', async () => {
+    const response = await request(app).post(`${BASE_URL}/]+*+)/kill`)
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe(
+      'Invalid URL Parameters - child "id" fails because ["id" with value "]+*+)" fails to match the required pattern: /^[a-z0-9]*$/]'
+    )
+  })
 })
 
 describe(`POST ${BASE_URL}/:id/start`, () => {
@@ -140,5 +167,14 @@ describe(`POST ${BASE_URL}/:id/start`, () => {
     const container = await docker.getContainer(containerId)
     const details = await container.inspect()
     expect(details.State.Running).toBe(true)
+  })
+
+  it('should validate the id', async () => {
+    const response = await request(app).post(`${BASE_URL}/}({!++/start`)
+
+    expect(response.status).toBe(400)
+    expect(response.text).toBe(
+      'Invalid URL Parameters - child "id" fails because ["id" with value "}({!++" fails to match the required pattern: /^[a-z0-9]*$/]'
+    )
   })
 })
