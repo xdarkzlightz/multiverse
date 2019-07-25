@@ -131,18 +131,13 @@ module.exports = class DockerService {
    * @returns Promise<Container>
    */
   async createContainer (options) {
-    let { name, path, http, auth } = options
+    let { name, path } = options
     const ExposedPorts = { '8443': {} }
     const PortBindings = { '8443': [{ HostPort: '8443' }] }
 
     const container = await this.docker.createContainer({
       Image: 'codercom/code-server',
-      Entrypoint: [
-        'dumb-init',
-        'code-server',
-        http ? '--allow-http' : '',
-        auth ? '' : '--no-auth'
-      ],
+      Entrypoint: ['dumb-init', 'code-server'],
       ExposedPorts,
       Labels: {
         multiverse: 'true',

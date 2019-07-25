@@ -6,10 +6,7 @@ const reasons = {
   'string.base': "%LABEL has to be type 'string'.",
   'string.min': '%LABEL has to be over %LIMIT characters.',
   'string.max': '%LABEL has to be under %LIMIT characters.',
-  'string.regex.base': 'invalid character in %LABEL (%CHARS only).',
-  'array.base': "%LABEL has to be type 'array'.",
-  'array.length': '%LABEL must contain at least %LIMIT items.',
-  'array.includesOne': 'invalid item in %LABEL at position %POS'
+  'string.regex.base': 'invalid character in %LABEL (%CHARS only).'
 }
 
 module.exports = errs => {
