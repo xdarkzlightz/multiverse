@@ -6,16 +6,15 @@ Multiverse is web app for managing and creating instant dev environments using d
 
 #### Environment Variables
 
-PASSWORD (Default - password)
-HOST (Default - 0.0.0.0)
-PORT (Default - 3000)
+MULTIVERSE_HOST (Default - 0.0.0.0)
+MULTIVERSE_PORT (Default - 3000)
 
 ### Docker - Recommended
 
-To make installation easy here's a one liner. Replace MyPassword with your password.
+To make installation easy here's a one liner.
 In order for multiverse to create and manage code-server instances a volume needs to be created for your docker.sock
 
-`docker run -it -e PASSWORD="MyPassword" -v /var/run/docker.sock:/var/run/docker.sock -p 3000:3000 xdarkzlightz/multiverse`
+`docker run -it -v /var/run/docker.sock:/var/run/docker.sock -p 3000:3000 xdarkzlightz/multiverse`
 
 ### Manual (Linux)
 
@@ -41,17 +40,17 @@ Start the app
 
 `yarn start` or `npm start`
 
+## Roadmap
+
+- [ ] User accounts for multi-user setups
+- [ ] Reverse proxy for easier access
+- [ ] Lots of optional configuration
+- [ ] Project templates
+- [ ] User defined extensions and settings
+- [ ] Add services to your project such as test databases or servers
+
 ## Screenshots
 
 ![Home Page](https://i.ibb.co/bK7Rqg6/2019-07-08-052735-1360x768-scrot.png)
 ![Form Filled](https://i.ibb.co/whD2JTN/2019-07-07-232410-1360x768-scrot.png)
 ![Form Empty](https://i.ibb.co/p21rsZF/2019-07-08-053043-1360x768-scrot.png)
-
-## Roadmap
-
-- [ ] Default user extensions
-- [ ] Default user settings
-- [ ] Instant setup for different languages
-- [ ] Git support (Setting up projects from git repos)
-- [ ] Project generation
-- [ ] Custom setups
