@@ -12,9 +12,14 @@ export default ({ name, id, running, port, setContainers }) => {
       );
       if (!confirmed) return;
     }
-    await axios.post(`/api/v0/docker/containers/${id}/${action}`);
-    const res = await axios.get("/api/v0/docker/containers");
-    setContainers(res.data.containers);
+
+    if (action === "remove") {
+      await axios.delete(`/api/containers/${id}`);
+    } else {
+      await axios.post(`/api/containers/${id}/${action}`);
+    }
+    const res = await axios.get("/api/containers");
+    setContainers(res.data);
   };
 
   const cardStyle = { width: "14rem" };
