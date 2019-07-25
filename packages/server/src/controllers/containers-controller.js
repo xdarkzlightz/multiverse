@@ -16,9 +16,10 @@ module.exports.getContainers = async ctx => {
 module.exports.createContainer = async ctx => {
   const containers = await docker.getContainers()
   const nameInUse = containers.some(
-    c => c.Labels['multiverse.project'] === ctx.request.body
+    c => c.Labels['multiverse.project'] === ctx.request.body.name
   )
   if (nameInUse) {
+    ctx.response.status = 400
     ctx.body = `name ${ctx.request.body.name} is already in use.`
     return
   }
