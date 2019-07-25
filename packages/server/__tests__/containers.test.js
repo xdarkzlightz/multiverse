@@ -167,12 +167,10 @@ describe(`DELETE ${BASE_URL}/:id`, () => {
   })
 
   it('should validate the id', async () => {
-    const response = await request(app).delete(`${BASE_URL}/535[{&[{53=(=)}]}]`)
+    const response = await request(app).post(`${BASE_URL}/}({!++/start`)
 
     expect(response.status).toBe(400)
-    expect(response.text).toBe(
-      'Invalid URL Parameters - child "id" fails because ["id" with value "535[{&[{53=(=)}]}]" fails to match the required pattern: /^[a-z0-9]*$/]'
-    )
+    expect(response.text).toBe('invalid character in id (a-z 0-9 only).')
   })
 
   it('should 400 if the container is running', async () => {
@@ -233,12 +231,10 @@ describe(`POST ${BASE_URL}/:id/stop`, () => {
   })
 
   it('should validate the id', async () => {
-    const response = await request(app).post(`${BASE_URL}/$}({[]][}/stop`)
+    const response = await request(app).post(`${BASE_URL}/}({!++/start`)
 
     expect(response.status).toBe(400)
-    expect(response.text).toBe(
-      'Invalid URL Parameters - child "id" fails because ["id" with value "$}({[]][}" fails to match the required pattern: /^[a-z0-9]*$/]'
-    )
+    expect(response.text).toBe('invalid character in id (a-z 0-9 only).')
   })
 
   it('should 400 if the container is already stopped', async () => {
@@ -272,12 +268,10 @@ describe(`POST ${BASE_URL}/:id/kill`, () => {
   })
 
   it('should validate the id', async () => {
-    const response = await request(app).post(`${BASE_URL}/]+*+)/kill`)
+    const response = await request(app).post(`${BASE_URL}/}({!++/start`)
 
     expect(response.status).toBe(400)
-    expect(response.text).toBe(
-      'Invalid URL Parameters - child "id" fails because ["id" with value "]+*+)" fails to match the required pattern: /^[a-z0-9]*$/]'
-    )
+    expect(response.text).toBe('invalid character in id (a-z 0-9 only).')
   })
 
   it('should 400 if the container is already stopped', async () => {
@@ -310,9 +304,7 @@ describe(`POST ${BASE_URL}/:id/start`, () => {
     const response = await request(app).post(`${BASE_URL}/}({!++/start`)
 
     expect(response.status).toBe(400)
-    expect(response.text).toBe(
-      'Invalid URL Parameters - child "id" fails because ["id" with value "}({!++" fails to match the required pattern: /^[a-z0-9]*$/]'
-    )
+    expect(response.text).toBe('invalid character in id (a-z 0-9 only).')
   })
 
   it('should 400 if the container is already started', async () => {
