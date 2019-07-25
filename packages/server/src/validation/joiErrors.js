@@ -22,14 +22,14 @@ module.exports = errs => {
     err.context.reason.forEach(reason => {
       const { label, limit, pos } = reason.context
       const type = reason.type
-      if (reasons[type] && (type !== 'string.regex.base' && label !== 'path')) {
+      if (reasons[type]) {
         const variables = {
           '%LABEL': label,
           '%LIMIT': limit,
           '%POS': pos,
-          '%CHARS': reason.type === 'name' ? 'a-z A-Z .-_' : 'a-z A-Z'
+          '%CHARS': 'a-z A-Z .-_'
         }
-        const regex = /%LABEL|%LIMIT|%POS/g
+        const regex = /%LABEL|%LIMIT|%POS|%CHARS/g
         const msg = reasons[reason.type].replace(regex, m => variables[m])
         errors.push(msg)
       } else {
