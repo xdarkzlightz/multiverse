@@ -1,5 +1,6 @@
 const Router = require('koa-router')
 const validate = require('koa-joi-validate')
+const passport = require('koa-passport')
 const ctl = require('../controllers/containers-controller')
 const schema = require('../validation/schema')
 const containerId = require('../validation/containerId')
@@ -14,16 +15,56 @@ const idValidator = validate({
 const router = new Router()
 const BASE_URL = '/api/containers'
 
-router.get(BASE_URL, ctl.getContainers)
+// Middleware for checking if the user sending the request is an admin
+const adminOnly = async (ctx, next) => {
+  if (ctx.state.user.username !== 'admin') {
+    ctx.status = 401
+    return
+  }
+  await next()
+}
 
-router.post(BASE_URL, containerValidator, ctl.createContainer)
+// Get all of the containers belonging to multiverse
+router.get(
+  BASE_URL,
+  passport.authenticate('jwt', { session: false }),
+  adminOnly,
+  ctl.getContainers
+)
 
-router.delete(`${BASE_URL}/:id`, idValidator, ctl.removeContainer)
+router.post(
+  BASE_URL,
+  containerValidator,
+  passport.authenticate('jwt', { session: false }),
+  ctl.createContainer
+)
 
-router.post(`${BASE_URL}/:id/stop`, idValidator, ctl.stopContainer)
+router.delete(
+  `${BASE_URL}/:id`,
+  idValidator,
+  passport.authenticate('jwt', { session: false }),
+  ctl.removeContainer
+)
 
-router.post(`${BASE_URL}/:id/kill`, idValidator, ctl.killContainer)
+router.post(
+  `${BASE_URL}/:id/stop`,
+  idValidator,
+  passport.authenticate('jwt', { session: false }),
+  ctl.stopContainer
+)
 
-router.post(`${BASE_URL}/:id/start`, idValidator, ctl.startContainer)
+router.post(
+  `${BASE_URL}/:id/kill`,
+  idValidator,
+  passport.authenticate('jwt', { session: false }),
+  ctl.killContainer
+)
+
+router.post(
+  `${BASE_URL}/:id/start`,
+  idValidator,
+  passport.authenticate('jwt', { session: false }),
+  ctl.startContainer
+)
 
 module.exports = router
