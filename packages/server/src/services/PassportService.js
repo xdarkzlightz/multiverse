@@ -40,12 +40,16 @@ opts.secretOrKey = 'secureLater'
 
 passport.use(
   new JwtStrategy(opts, async (jwtPayload, done) => {
-    const user = await userService.getUserById(jwtPayload.id)
+    try {
+      const user = await userService.getUserById(jwtPayload.id)
 
-    if (user) {
-      done(null, user)
-    } else {
-      done(null, false)
+      if (user) {
+        done(null, user)
+      } else {
+        done(null, false)
+      }
+    } catch (e) {
+      done(e)
     }
   })
 )
