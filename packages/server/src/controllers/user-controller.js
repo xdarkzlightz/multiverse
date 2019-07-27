@@ -15,7 +15,11 @@ module.exports.createUser = async ctx => {
 module.exports.getUsers = async ctx => {
   const users = await userService.getUsers()
 
-  ctx.body = users
+  ctx.body = users.map(u => {
+    const user = u.toJSON()
+    delete user.password
+    return user
+  })
 
   ctx.status = 200
 }
@@ -23,7 +27,11 @@ module.exports.getUsers = async ctx => {
 module.exports.getUser = async ctx => {
   const user = await userService.getUserById(ctx.params.id)
 
-  ctx.body = user
+  const response = user.toJSON()
+
+  delete response.password
+
+  ctx.body = response
 
   ctx.status = 200
 }
