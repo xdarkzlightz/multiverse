@@ -24,10 +24,15 @@ module.exports = class UserService {
     await this.sequelize.authenticate()
     logger.debug('Connected to sqlite database')
 
+    this.connection = true
+
     await this.user.sync()
     logger.debug('Synchronised user model')
 
-    this.connection = true
+    const exists = await this.getUser('admin')
+    if (!exists) {
+      await this.createUser({ username: 'admin', password: 'password' })
+    }
   }
 
   async close () {
