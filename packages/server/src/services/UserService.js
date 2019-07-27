@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize')
-const User = require('../models/User')
+const bcrypt = require('bcrypt')
 const join = require('path').join
+const User = require('../models/User')
 const logger = require('../utils/winston')
 
 // For now sqlite is just gonna be used for storing user data
@@ -28,11 +29,11 @@ module.exports = class UserService {
     logger.debug('Closed the connection')
   }
 
-  async createUser (data) {
+  async createUser ({ username, password }) {
     try {
       await this.connect()
-
-      const user = await this.user.create(data)
+      const hash = await bcrypt.hash(password, 12)
+      const user = await this.user.create({ username, password: hash })
       logger.info(`Created new user ${user.username}, id: ${user.id}`)
 
       return user
@@ -63,13 +64,12 @@ module.exports = class UserService {
     }
   }
 
-  async getUser (username, password) {
+  async getUser (username) {
     try {
       await this.connect()
       const user = await this.user.findOne({
         where: {
-          username,
-          password
+          username
         }
       })
       logger.info(`Fetched user ${user.username} (${user.id})`)
