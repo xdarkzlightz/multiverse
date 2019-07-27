@@ -14,14 +14,18 @@ module.exports = class UserService {
     })
 
     this.user = User(this.sequelize)
+    this.connection = false
   }
 
   async connect () {
+    if (this.connection) return
     await this.sequelize.authenticate()
     logger.debug('Connected to sqlite database')
 
     await this.user.sync()
     logger.debug('Synchronised user model')
+
+    this.connection = true
   }
 
   async close () {
