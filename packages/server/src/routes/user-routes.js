@@ -19,4 +19,10 @@ router.patch(`${BASE_URL}/:id`, ctl.updateUser)
 // Delete a user
 router.delete(`${BASE_URL}/:id`, ctl.deleteUser)
 
+// Reset a users password
+router.patch(`${BASE_URL}/:id/resetPassword`, ctl.resetPassword)
+
+// Update a users password
+router.patch(`${BASE_URL}/:id/updatePassword`, ctl.updatePassword)
+
 module.exports = router

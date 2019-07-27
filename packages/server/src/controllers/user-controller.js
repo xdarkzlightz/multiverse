@@ -46,3 +46,14 @@ module.exports.updateUser = async ctx => {
   await userService.updateUser(ctx.params.id, ctx.request.body)
   ctx.status = 204
 }
+
+module.exports.resetPassword = async ctx => {
+  await userService.resetPassword(ctx.params.id, ctx.request.body.password)
+  ctx.status = 204
+}
+
+module.exports.updatePassword = async ctx => {
+  const { oldPassword, newPassword } = ctx.request.body
+  await userService.updatePassword(ctx.params.id, oldPassword, newPassword)
+  ctx.status = 204
+}
