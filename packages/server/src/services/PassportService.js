@@ -4,6 +4,7 @@ const UserService = require('./UserService')
 const JwtStrategy = require('passport-jwt').Strategy
 const ExtractJwt = require('passport-jwt').ExtractJwt
 const bcrypt = require('bcrypt')
+const FriendlyError = require('../errors/FriendlyError')
 
 const userService = new UserService()
 
@@ -42,13 +43,11 @@ passport.use(
   new JwtStrategy(opts, async (jwtPayload, done) => {
     try {
       const user = await userService.getUserById(jwtPayload.id)
-
-      if (user) {
-        done(null, user)
-      } else {
-        done(null, false)
-      }
+      done(null, user)
     } catch (e) {
+      if (e instanceof FriendlyError) {
+        return done(null, false)
+      }
       done(e)
     }
   })
