@@ -15,20 +15,9 @@ const idValidator = validate({
 const router = new Router()
 const BASE_URL = '/api/containers'
 
-// Middleware for checking if the user sending the request is an admin
-const adminOnly = async (ctx, next) => {
-  if (ctx.state.user.username !== 'admin') {
-    ctx.status = 401
-    return
-  }
-  await next()
-}
-
-// Get all of the containers belonging to multiverse
 router.get(
   BASE_URL,
   passport.authenticate('jwt', { session: false }),
-  adminOnly,
   ctl.getContainers
 )
 
