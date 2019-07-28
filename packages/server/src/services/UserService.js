@@ -31,7 +31,11 @@ module.exports = class UserService {
 
     const exists = await this.getUser('admin')
     if (!exists) {
-      await this.createUser({ username: 'admin', password: 'password' })
+      await this.createUser({
+        username: 'admin',
+        password: 'password',
+        admin: true
+      })
     }
   }
 
@@ -42,7 +46,7 @@ module.exports = class UserService {
 
   // Attempts to create a new user
   // Throws a friendly error if the username is in use
-  async createUser ({ username, password }) {
+  async createUser ({ username, password, admin }) {
     await this.connect()
     const exists = await this.getUser(username)
 
@@ -50,7 +54,7 @@ module.exports = class UserService {
       throw new FriendlyError('Username already in use')
     }
     const hash = await bcrypt.hash(password, 12)
-    const user = await this.user.create({ username, password: hash })
+    const user = await this.user.create({ username, password: hash, admin })
     logger.info(`Created new user ${user.username}, id: ${user.id}`)
 
     return user
@@ -105,10 +109,10 @@ module.exports = class UserService {
   }
 
   // Attempts to update a user's username by their id
-  async updateUser (id, { username }) {
+  async updateUser (id, { username, firstLogin }) {
     await this.connect()
     const user = await this.getUserById(id)
-    await user.update({ username })
+    await user.update({ username, firstLogin })
     logger.info(`Updated user ${id}`)
   }
 
