@@ -22,7 +22,7 @@ app.use(async (ctx, next) => {
     await next()
   } catch (err) {
     if (err instanceof FriendlyError) {
-      ctx.status = 400
+      ctx.status = err.status
       ctx.body = err.message
       ctx.app.emit('error', err, ctx)
     } else {
@@ -42,7 +42,7 @@ app.use(authRoutes.routes())
 app.use(require('koa-static')(join(__dirname, '/client')))
 
 app.on('error', (err, ctx) => {
-  if (err.status !== 400) winston.error(err.stack)
+  if (err instanceof FriendlyError !== true) winston.error(err.stack)
 })
 
 module.exports = app
