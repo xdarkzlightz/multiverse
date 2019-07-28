@@ -25,6 +25,7 @@ const checkUser = async (ctx, next) => {
 
   await next()
 }
+
 // Create a new user
 router.post(
   BASE_URL,
