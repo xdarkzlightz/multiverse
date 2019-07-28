@@ -3,7 +3,14 @@ const DockerService = require('../services/DockerService')
 const docker = new DockerService()
 
 module.exports.getContainers = async ctx => {
-  const containers = await docker.getContainers()
+  let containers = await docker.getContainers()
+
+  if (!ctx.state.user.admin) {
+    containers = containers.filter(
+      ({ Labels }) => Labels['multiverse.userId'] === ctx.state.user.id
+    )
+  }
+
   ctx.body = containers.map(c => ({
     id: c.Id,
     name: c.Labels['multiverse.project'],
@@ -24,27 +31,35 @@ module.exports.createContainer = async ctx => {
     return
   }
 
-  const container = await docker.createContainer(ctx.request.body)
+  const container = await docker.createContainer({
+    ...ctx.request.body,
+    userId: ctx.state.user.id
+  })
   ctx.body = { id: container.id }
   ctx.response.status = 201
 }
 
 module.exports.stopContainer = async ctx => {
-  await docker.stopContainer(ctx.params.id)
+  const { id, admin } = ctx.state.user
+  await docker.stopContainer(ctx.params.id, id, admin)
   ctx.response.status = 204
 }
 
 module.exports.killContainer = async ctx => {
-  await docker.killContainer(ctx.params.id)
+  const { id, admin } = ctx.state.user
+  await docker.killContainer(ctx.params.id, id, admin)
   ctx.response.status = 204
 }
 
 module.exports.startContainer = async ctx => {
-  await docker.startContainer(ctx.params.id)
+  const { id, admin } = ctx.state.user
+  await docker.startContainer(ctx.params.id, id, admin)
+
   ctx.response.status = 204
 }
 
 module.exports.removeContainer = async ctx => {
-  await docker.removeContainer(ctx.params.id)
+  const { id, admin } = ctx.state.user
+  await docker.removeContainer(ctx.params.id, id, admin)
   ctx.response.status = 204
 }

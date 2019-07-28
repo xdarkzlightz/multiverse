@@ -29,7 +29,7 @@ module.exports = class DockerService {
    * @throws {FriendlyError}
    * @returns Promise<Container>
    */
-  async getContainer (id) {
+  async getContainer (id, userId, force = false) {
     try {
       const container = await this.docker.getContainer(id)
       const {
@@ -40,6 +40,10 @@ module.exports = class DockerService {
         throw new FriendlyError(
           'Unable to access container, it was not created by multiverse.'
         )
+      }
+
+      if (!force && Labels['multiverse.userId'] !== userId) {
+        throw new FriendlyError('Unauthorized', { status: 401 })
       }
 
       return container
@@ -57,8 +61,8 @@ module.exports = class DockerService {
    * @throws ContainerStoppedError
    * @returns Promise<void>
    */
-  async stopContainer (id) {
-    const container = await this.getContainer(id)
+  async stopContainer (id, userId, force = false) {
+    const container = await this.getContainer(id, userId, force)
     const data = await container.inspect()
     if (!data.State.Running) {
       throw new FriendlyError('Container already stopped.')
@@ -73,8 +77,8 @@ module.exports = class DockerService {
    * @throws ContainerStartedError
    * @returns Promise<void>
    */
-  async startContainer (id) {
-    const container = await this.getContainer(id)
+  async startContainer (id, userId, force = false) {
+    const container = await this.getContainer(id, userId, force)
     const data = await container.inspect()
     if (data.State.Running) {
       throw new FriendlyError('Container already started.')
@@ -89,8 +93,8 @@ module.exports = class DockerService {
    * @throws ContainerStoppedError
    * @returns Promise<void>
    */
-  async killContainer (id) {
-    const container = await this.getContainer(id)
+  async killContainer (id, userId, force = false) {
+    const container = await this.getContainer(id, userId, force)
     const data = await container.inspect()
     if (!data.State.Running) {
       throw new FriendlyError('Container already stopped.')
@@ -105,8 +109,8 @@ module.exports = class DockerService {
    * @throws ContainerRunningError
    * @returns Promise<void>
    */
-  async removeContainer (id) {
-    const container = await this.getContainer(id)
+  async removeContainer (id, userId, force = false) {
+    const container = await this.getContainer(id, userId, force)
     const data = await container.inspect()
     if (data.State.Running) {
       throw new FriendlyError('Cannot remove a running container.')
@@ -118,20 +122,14 @@ module.exports = class DockerService {
   /**
    * @typedef {Object} Options
    * @property {string} name
-   * @property {string} password
-   * @property {[number]} port
    * @property {string} path
-   * @property {[[number]]} ports
-   * @property {[[string]]} volumes
-   * @property {boolean} http
-   * @property {auth} auth
    *
    * @description Creates a container
    * @param {Options} options Container id
    * @returns Promise<Container>
    */
   async createContainer (options) {
-    let { name, path } = options
+    let { name, path, userId } = options
     const ExposedPorts = { '8443': {} }
     const PortBindings = { '8443': [{ HostPort: '8443' }] }
 
@@ -142,7 +140,8 @@ module.exports = class DockerService {
       Labels: {
         multiverse: 'true',
         [`multiverse.port`]: '8443',
-        [`multiverse.project`]: name
+        [`multiverse.project`]: name,
+        [`multiverse.userId`]: userId
       },
       HostConfig: {
         PortBindings,
