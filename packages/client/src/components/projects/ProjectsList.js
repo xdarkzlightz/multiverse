@@ -7,6 +7,7 @@ import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 
 import Header from "../Header";
+import Toolbar from "./ProjectsToolbar";
 import { UserConsumer } from "../../context/UserContext";
 
 import useApi from "../../hooks/useApi";
@@ -29,7 +30,9 @@ export default () => {
       <>
         <UserConsumer>{data => <Header {...data} />}</UserConsumer>
         <Container>
-          <Row>
+          <h1 className="text-center display-4 mb-4">Projects</h1>
+          <Toolbar />
+          <Row className="mt-3">
             {data.map(c => (
               <Col
                 key={c.id}
