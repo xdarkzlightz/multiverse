@@ -9,23 +9,24 @@ import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
-export default () => {
+export default ({ user, setUser }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [auth, setAuth] = useState(false);
+  const token = localStorage.getItem("token");
+  const id = localStorage.getItem("user_id");
 
-  if (auth) return <Redirect to="/" />;
+  if (token && id) return <Redirect to="/" />;
 
-  const signin = () => {
-    axios
-      .post("/api/auth/login", { username, password })
-      .then(res => {
-        localStorage.setItem("token", res.data.token);
-        setAuth(true);
-      })
-      .catch(e => {
-        console.log(e);
-      });
+  const signin = async () => {
+    const token = await axios.post("/api/auth/login", { username, password });
+    localStorage.setItem("token", token.data.token);
+
+    const user = await axios.get(`/api/users/${token.data.id}`, {
+      headers: { Authorization: `Bearer ${token.data.token}` }
+    });
+
+    localStorage.setItem("user_id", token.data.id);
+    setUser(user.data);
   };
 
   return (

@@ -7,6 +7,7 @@ import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 
 import Header from "../Header";
+import { UserConsumer } from "../../context/UserContext";
 
 import useApi from "../../hooks/useApi";
 
@@ -26,7 +27,7 @@ export default () => {
   } else {
     return (
       <>
-        <Header />
+        <UserConsumer>{data => <Header {...data} />}</UserConsumer>
         <Container>
           <Row>
             {data.map(c => (
