@@ -16,7 +16,7 @@ module.exports.login = async (ctx, next) => {
           await userService.updateUser(user.id, { firstLogin: false })
         }
         ctx.status = 200
-        ctx.body = { success: true, token }
+        ctx.body = { success: true, token, id: user.id }
       } else {
         ctx.body = { success: false }
         ctx.status = 401
