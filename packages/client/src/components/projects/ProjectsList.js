@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Redirect } from "react-router-dom";
 
 import Project from "./Project";
@@ -12,12 +12,63 @@ import { UserConsumer } from "../../context/UserContext";
 
 import useApi from "../../hooks/useApi";
 
+const sort = (data, type) => {
+  let filter;
+  if (type === "a-z") {
+    filter = (a, b) => {
+      if (a.name > b.name) return 1;
+      if (a.name < b.name) return -1;
+      return 0;
+    };
+  } else if (type === "z-a") {
+    filter = (a, b) => {
+      if (a.name < b.name) return 1;
+      if (a.name > b.name) return -1;
+      return 0;
+    };
+  } else if (type === "created by: a-z") {
+    filter = (a, b) => {
+      if (a.username > b.username) return 1;
+      if (a.username < b.username) return -1;
+      return 0;
+    };
+  } else if (type === "created by: z-a") {
+    filter = (a, b) => {
+      if (a.username < b.username) return 1;
+      if (a.username > b.username) return -1;
+      return 0;
+    };
+  } else if (type === "created at: oldest") {
+    filter = (a, b) => {
+      const aCreatedAt = new Date(a.createdAt);
+      const bCreatedAt = new Date(b.createdAt);
+
+      if (aCreatedAt > bCreatedAt) return 1;
+      if (aCreatedAt < bCreatedAt) return -1;
+      return 0;
+    };
+  } else if (type === "created at: newest") {
+    filter = (a, b) => {
+      const aCreatedAt = new Date(a.createdAt);
+      const bCreatedAt = new Date(b.createdAt);
+
+      if (aCreatedAt < bCreatedAt) return 1;
+      if (aCreatedAt > bCreatedAt) return -1;
+      return 0;
+    };
+  }
+
+  data.sort(filter);
+};
+
 export default () => {
   const [{ data, loading, error, auth }, fetchData] = useApi([]);
-
+  const [filter, setFilter] = useState("a-z");
   useEffect(() => {
     fetchData("/api/containers");
   }, [fetchData]);
+
+  sort(data, filter);
 
   if (loading) {
     return <></>;
@@ -31,7 +82,7 @@ export default () => {
         <UserConsumer>{data => <Header {...data} />}</UserConsumer>
         <Container>
           <h1 className="text-center display-4 mb-4">Projects</h1>
-          <Toolbar />
+          <Toolbar setFilter={setFilter} filter={filter} />
           <Row className="mt-3">
             {data.map(c => (
               <Col
@@ -43,7 +94,7 @@ export default () => {
                 xl={3}
                 className="mb-3"
               >
-                <Project {...c} setContainers={fetchData} />
+                <Project data={c} setContainers={fetchData} />
               </Col>
             ))}
           </Row>

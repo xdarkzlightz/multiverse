@@ -4,7 +4,7 @@ import Form from "react-bootstrap/Form";
 import Dropdown from "react-bootstrap/Dropdown";
 import Col from "react-bootstrap/Col";
 
-export default () => {
+export default ({ filter, setFilter }) => {
   return (
     <Form>
       <Form.Row className="d-flex justify-content-center">
@@ -15,13 +15,27 @@ export default () => {
         <Col xs="3">
           <Dropdown>
             <Dropdown.Toggle variant="success" id="dropdown-basic">
-              Sort by
+              Sort by {filter}
             </Dropdown.Toggle>
             <Dropdown.Menu>
-              <Dropdown.Item>a-z</Dropdown.Item>
-              <Dropdown.Item>z-a</Dropdown.Item>
-              <Dropdown.Item>Created by</Dropdown.Item>
-              <Dropdown.Item>Created at</Dropdown.Item>
+              <Dropdown.Item onClick={() => setFilter("a-z")}>
+                a-z
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => setFilter("z-a")}>
+                z-a
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => setFilter("created by: a-z")}>
+                Created by: a-z
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => setFilter("created by: z-a")}>
+                Created by: z-a
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => setFilter("created at: oldest")}>
+                Created at: oldest
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => setFilter("created at: newest")}>
+                Created at: newest
+              </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
         </Col>

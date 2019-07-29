@@ -4,7 +4,11 @@ import axios from "axios";
 import Card from "react-bootstrap/Card";
 import ContainerButton from "./ProjectButton";
 
-export default ({ name, id, running, port, setContainers }) => {
+export default ({ data, setContainers }) => {
+  const { name, id, running, port, username, createdAt } = data;
+
+  const created = new Date(createdAt);
+
   const doAction = async action => {
     if (["stop", "kill", "remove"].includes(action)) {
       const confirmed = window.confirm(
@@ -28,6 +32,10 @@ export default ({ name, id, running, port, setContainers }) => {
     <Card style={cardStyle} bg="secondary" text="light">
       <Card.Header className="text-center">
         {name.replace(/-/g, " ")}
+        <br />
+        {`By ${username}`}
+        <br />
+        {`Created ${created.toDateString()}`}
       </Card.Header>
       <Card.Footer>
         {running ? (
