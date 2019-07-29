@@ -31,10 +31,11 @@ module.exports = class DockerService {
    */
   async getContainer (id, userId, force = false) {
     try {
-      const container = await this.docker.getContainer(id)
+      let container = await this.docker.getContainer(id)
+      container = await container.inspect()
       const {
         Config: { Labels, Image }
-      } = await container.inspect()
+      } = container
 
       if (!Labels.multiverse || !Image === 'codercom/code-server') {
         throw new FriendlyError(
