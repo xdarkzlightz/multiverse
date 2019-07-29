@@ -1,6 +1,9 @@
 const DockerService = require('../services/DockerService')
+const UserService = require('../services/UserService')
+const logger = require('../utils/winston')
 
 const docker = new DockerService()
+const userService = new UserService()
 
 module.exports.getContainers = async ctx => {
   let containers = await docker.getContainers()
@@ -11,12 +14,32 @@ module.exports.getContainers = async ctx => {
     )
   }
 
-  ctx.body = containers.map(c => ({
+  const mappedContainers = containers.map(c => ({
     id: c.Id,
     name: c.Labels['multiverse.project'],
     running: c.State === 'running',
-    port: c.Labels['multiverse.port'] || '8443'
+    port: c.Labels['multiverse.port'] || '8443',
+    userId: c.Labels['multiverse.userId']
   }))
+
+  const promises = []
+  mappedContainers.forEach(c => {
+    const userPromise = userService
+      .getUserById(c.userId)
+      .then(user => (c.username = user.username))
+      .catch(e => logger.error(e))
+    promises.push(userPromise)
+
+    const dockerPromise = docker
+      .getContainer(c.id, ctx.state.user.id, ctx.state.user.admin)
+      .then(data => {
+        c.createdAt = data.Created
+      })
+      .catch(e => logger.error(e))
+    promises.push(dockerPromise)
+  })
+  await Promise.all(promises)
+  ctx.body = mappedContainers
   ctx.response.status = 200
 }
 
