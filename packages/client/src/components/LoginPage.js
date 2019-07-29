@@ -1,0 +1,67 @@
+import React, { useState } from "react";
+import { Redirect } from "react-router-dom";
+
+import axios from "axios";
+
+import Form from "react-bootstrap/Form";
+import Container from "react-bootstrap/Container";
+import Button from "react-bootstrap/Button";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+
+export default () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [auth, setAuth] = useState(false);
+
+  if (auth) return <Redirect to="/" />;
+
+  const signin = () => {
+    axios
+      .post("/api/auth/login", { username, password })
+      .then(res => {
+        localStorage.setItem("token", res.data.token);
+        setAuth(true);
+      })
+      .catch(e => {
+        console.log(e);
+      });
+  };
+
+  return (
+    <Container fluid className="min-vh-100">
+      <Row className="min-vh-100 d-flex justify-content-center align-items-center">
+        <Col xs="5">
+          <h1 className="text-center display-4">Multiverse</h1>
+          <Form>
+            <Form.Group controlId="formBasicEmail">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter username"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group controlId="formBasicPassword">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+            </Form.Group>
+            <Row className="d-flex justify-content-center">
+              <Col xs="2">
+                <Button variant="success" onClick={signin}>
+                  Login
+                </Button>
+              </Col>
+            </Row>
+          </Form>
+        </Col>
+      </Row>
+    </Container>
+  );
+};
