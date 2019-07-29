@@ -2,7 +2,7 @@ import React from "react";
 import axios from "axios";
 
 import Card from "react-bootstrap/Card";
-import ContainerButton from "./ContainerButton";
+import ContainerButton from "./ProjectButton";
 
 export default ({ name, id, running, port, setContainers }) => {
   const doAction = async action => {
