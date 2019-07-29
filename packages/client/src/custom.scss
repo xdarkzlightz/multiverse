@@ -61,6 +61,26 @@ body {
   box-shadow: none;
 }
 
+.form-control-plaintext {
+  background-color: map-get($theme-colors, "secondary");
+  border-radius: 0;
+  border: 0 none;
+}
+
+.form-control-plaintext:focus {
+  background-color: #263040;
+  border: 0 none;
+  outline: none;
+  box-shadow: none;
+}
+
+.form-control-plaintext:disabled {
+  background-color: #191f29;
+  border: 0 none;
+  outline: none;
+  box-shadow: none;
+}
+
 .alert {
   border-radius: 0;
 }
