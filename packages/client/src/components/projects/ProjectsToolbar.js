@@ -4,13 +4,18 @@ import Form from "react-bootstrap/Form";
 import Dropdown from "react-bootstrap/Dropdown";
 import Col from "react-bootstrap/Col";
 
-export default ({ filter, setFilter }) => {
+export default ({ filter, setFilter, search, setSearch }) => {
   return (
     <Form>
       <Form.Row className="d-flex justify-content-center">
         <Col xs="2" />
         <Col xs={5}>
-          <Form.Control plaintext placeholder="Search projects" />
+          <Form.Control
+            plaintext
+            placeholder="Search projects"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
         </Col>
         <Col xs="3">
           <Dropdown>

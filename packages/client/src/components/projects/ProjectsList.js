@@ -61,14 +61,34 @@ const sort = (data, type) => {
   data.sort(filter);
 };
 
+const filterData = (data, value, type) => {
+  let filter;
+  if (["a-z", "z-a"].includes(type)) {
+    filter = c => c.name.includes(value);
+  } else if (["created by: a-z", "created by: z-a"].includes(type)) {
+    filter = c => c.username.includes(value);
+  } else if (["created at: oldest", "created at: newest"].includes(type)) {
+    filter = c => {
+      const createdAt = new Date(c.createdAt);
+      return createdAt.toDateString().includes(value);
+    };
+  }
+
+  return data.filter(filter);
+};
+
 export default () => {
   const [{ data, loading, error, auth }, fetchData] = useApi([]);
   const [filter, setFilter] = useState("a-z");
+  const [search, setSearch] = useState("");
+
   useEffect(() => {
     fetchData("/api/containers");
   }, [fetchData]);
 
   sort(data, filter);
+
+  const containers = filterData(data, search, filter);
 
   if (loading) {
     return <></>;
@@ -82,9 +102,14 @@ export default () => {
         <UserConsumer>{data => <Header {...data} />}</UserConsumer>
         <Container>
           <h1 className="text-center display-4 mb-4">Projects</h1>
-          <Toolbar setFilter={setFilter} filter={filter} />
+          <Toolbar
+            setFilter={setFilter}
+            filter={filter}
+            search={search}
+            setSearch={setSearch}
+          />
           <Row className="mt-3">
-            {data.map(c => (
+            {containers.map(c => (
               <Col
                 key={c.id}
                 xs={12}
