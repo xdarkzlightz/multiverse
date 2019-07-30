@@ -63,6 +63,7 @@ export default ({ user, setUser }) => {
                 placeholder="Password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                onKeyPress={e => (e.key === "Enter" ? signin() : null)}
               />
             </Form.Group>
             <Row className="d-flex justify-content-center">
