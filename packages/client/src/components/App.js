@@ -8,7 +8,7 @@ import {
 
 import axios from "axios";
 
-import ProjectsList from "./projects/ProjectsList";
+import ProjectsPage from "./projects/ProjectsPage";
 import InstanceCreator from "./instanceForm/InstanceCreator";
 import Login from "./LoginPage";
 import UsersList from "./users/UsersList";
@@ -34,7 +34,7 @@ export default () => {
       <Switch>
         <Route path="/projects">
           <UserProvider value={{ user, setUser }}>
-            <ProjectsList />
+            <ProjectsPage />
           </UserProvider>
         </Route>
         <Route path="/users" component={UsersList} />

@@ -4,7 +4,7 @@ import Form from "react-bootstrap/Form";
 import Dropdown from "react-bootstrap/Dropdown";
 import Col from "react-bootstrap/Col";
 
-export default ({ filter, setFilter, search, setSearch }) => {
+export default ({ filter, setFilter, search, setSearch, view, setView }) => {
   return (
     <Form>
       <Form.Row className="d-flex justify-content-center">
@@ -17,7 +17,7 @@ export default ({ filter, setFilter, search, setSearch }) => {
             onChange={e => setSearch(e.target.value)}
           />
         </Col>
-        <Col xs="3">
+        <Col xs="2">
           <Dropdown>
             <Dropdown.Toggle variant="success" id="dropdown-basic">
               Sort by {filter}
@@ -40,6 +40,21 @@ export default ({ filter, setFilter, search, setSearch }) => {
               </Dropdown.Item>
               <Dropdown.Item onClick={() => setFilter("created at: newest")}>
                 Created at: newest
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </Col>
+        <Col xs="1">
+          <Dropdown>
+            <Dropdown.Toggle variant="success" id="dropdown-basic">
+              {view}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => setView("grid")}>
+                grid
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => setView("list")}>
+                list
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
