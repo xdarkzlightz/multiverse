@@ -4,7 +4,7 @@ import axios from "axios";
 export default initialDataState => {
   const [url, setUrl] = useState();
   const [data, setData] = useState(initialDataState);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [auth, setAuth] = useState(false);
 
@@ -12,7 +12,6 @@ export default initialDataState => {
     const fetchData = async () => {
       if (!url) return;
       const token = localStorage.getItem("token");
-      setLoading(true);
 
       if (!token) {
         setAuth(false);
