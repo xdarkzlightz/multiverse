@@ -8,8 +8,10 @@ export default ({ filter, setFilter, search, setSearch, view, setView }) => {
   return (
     <Form>
       <Form.Row className="d-flex justify-content-center">
-        <Col xs="2" />
-        <Col xs={5}>
+        <Col xs="2">
+          <h3 className="text-center">Projects</h3>
+        </Col>
+        <Col xs={4}>
           <Form.Control
             plaintext
             placeholder="Search projects"

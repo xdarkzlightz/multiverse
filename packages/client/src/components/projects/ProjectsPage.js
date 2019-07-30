@@ -102,7 +102,6 @@ export default () => {
       <>
         <UserConsumer>{data => <Header {...data} />}</UserConsumer>
         <Container>
-          <h1 className="text-center display-4 mb-4">Projects</h1>
           <Toolbar
             setFilter={setFilter}
             filter={filter}
