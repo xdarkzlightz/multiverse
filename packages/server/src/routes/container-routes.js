@@ -2,7 +2,7 @@ const Router = require('koa-router')
 const validate = require('koa-joi-validate')
 const passport = require('koa-passport')
 const ctl = require('../controllers/containers-controller')
-const schema = require('../validation/schema')
+const schema = require('../validation/projectSchema')
 const containerId = require('../validation/containerId')
 
 const containerValidator = validate({
