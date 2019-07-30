@@ -5,7 +5,6 @@ import Container from "react-bootstrap/Container";
 
 import Header from "../Header";
 import Toolbar from "./ProjectsToolbar";
-import ProjectsGrid from "./ProjectsGrid";
 import ProjectsList from "./ProjectsList";
 import { UserConsumer } from "../../context/UserContext";
 
@@ -81,7 +80,6 @@ export default () => {
 
   const [filter, setFilter] = useState("a-z");
   const [search, setSearch] = useState("");
-  const [view, setView] = useState("grid");
 
   useEffect(() => {
     fetchData("/api/containers");
@@ -107,14 +105,9 @@ export default () => {
             filter={filter}
             search={search}
             setSearch={setSearch}
-            view={view}
-            setView={setView}
           />
-          {view === "grid" ? (
-            <ProjectsGrid containers={containers} fetchData={fetchData} />
-          ) : (
-            <ProjectsList containers={containers} />
-          )}
+
+          <ProjectsList containers={containers} />
         </Container>
       </>
     );
