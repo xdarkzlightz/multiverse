@@ -11,7 +11,7 @@ export default ({ filter, setFilter, search, setSearch, view, setView }) => {
         <Col xs="2">
           <h3 className="text-center">Projects</h3>
         </Col>
-        <Col xs={4}>
+        <Col xs="4">
           <Form.Control
             plaintext
             placeholder="Search projects"
@@ -19,7 +19,7 @@ export default ({ filter, setFilter, search, setSearch, view, setView }) => {
             onChange={e => setSearch(e.target.value)}
           />
         </Col>
-        <Col xs="2">
+        <Col xs="3">
           <Dropdown>
             <Dropdown.Toggle variant="success" id="dropdown-basic">
               Sort by {filter}
