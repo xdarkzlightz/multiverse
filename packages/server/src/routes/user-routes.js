@@ -1,9 +1,15 @@
 const Router = require('koa-router')
 const passport = require('koa-passport')
+const validate = require('koa-joi-validate')
+const schema = require('../validation/userSchema')
 const ctl = require('../controllers/user-controller')
 
 const router = new Router()
 const BASE_URL = '/api/users'
+
+const validator = validate({
+  body: schema
+})
 
 // Middleware for checking if the user sending the request is an admin
 const adminOnly = async (ctx, next) => {
@@ -30,6 +36,7 @@ const checkUser = async (ctx, next) => {
 router.post(
   BASE_URL,
   passport.authenticate('jwt', { session: false }),
+  validator,
   adminOnly,
   ctl.createUser
 )
