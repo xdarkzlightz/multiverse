@@ -8,25 +8,36 @@ import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Alert from "react-bootstrap/Alert";
 
 export default ({ user, setUser }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(false);
+
   const token = localStorage.getItem("token");
   const id = localStorage.getItem("user_id");
 
   if (token && id) return <Redirect to="/" />;
 
   const signin = async () => {
-    const token = await axios.post("/api/auth/login", { username, password });
-    localStorage.setItem("token", token.data.token);
+    try {
+      const token = await axios.post("/api/auth/login", { username, password });
+      localStorage.setItem("token", token.data.token);
 
-    const user = await axios.get(`/api/users/${token.data.id}`, {
-      headers: { Authorization: `Bearer ${token.data.token}` }
-    });
+      const user = await axios.get(`/api/users/${token.data.id}`, {
+        headers: { Authorization: `Bearer ${token.data.token}` }
+      });
 
-    localStorage.setItem("user_id", token.data.id);
-    setUser(user.data);
+      localStorage.setItem("user_id", token.data.id);
+      setUser(user.data);
+    } catch (e) {
+      if (e.response.status === 401) {
+        setError("Invalid username or password");
+      } else {
+        console.error(e);
+      }
+    }
   };
 
   return (
@@ -34,6 +45,7 @@ export default ({ user, setUser }) => {
       <Row className="min-vh-100 d-flex justify-content-center align-items-center">
         <Col xs="5">
           <h1 className="text-center display-4">Multiverse</h1>
+          {error ? <Alert variant="danger">{error}</Alert> : <></>}
           <Form>
             <Form.Group controlId="formBasicEmail">
               <Form.Label>Username</Form.Label>
