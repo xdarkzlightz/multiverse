@@ -11,52 +11,38 @@ import { UserConsumer } from "../../context/UserContext";
 import useApi from "../../hooks/useApi";
 
 const sort = (data, type) => {
-  let sortFunc;
-  if (type === "a-z") {
-    sortFunc = (a, b) => {
-      if (a.name > b.name) return 1;
-      if (a.name < b.name) return -1;
-      return 0;
-    };
-  } else if (type === "z-a") {
-    sortFunc = (a, b) => {
-      if (a.name < b.name) return 1;
-      if (a.name > b.name) return -1;
-      return 0;
-    };
-  } else if (type === "created by: a-z") {
-    sortFunc = (a, b) => {
-      if (a.username > b.username) return 1;
-      if (a.username < b.username) return -1;
-      return 0;
-    };
-  } else if (type === "created by: z-a") {
-    sortFunc = (a, b) => {
-      if (a.username < b.username) return 1;
-      if (a.username > b.username) return -1;
-      return 0;
-    };
-  } else if (type === "created at: oldest") {
-    sortFunc = (a, b) => {
-      const aCreatedAt = new Date(a.createdAt);
-      const bCreatedAt = new Date(b.createdAt);
+  const sortFunc = (prop, reverse) => {
+    data.sort((a, b) => {
+      const val = a[prop];
+      const _val = b[prop];
 
-      if (aCreatedAt > bCreatedAt) return 1;
-      if (aCreatedAt < bCreatedAt) return -1;
+      if (!reverse) {
+        if (val > _val) return 1;
+        if (val < _val) return -1;
+      } else {
+        if (val < _val) return 1;
+        if (val > _val) return -1;
+      }
       return 0;
-    };
-  } else if (type === "created at: newest") {
-    sortFunc = (a, b) => {
-      const aCreatedAt = new Date(a.createdAt);
-      const bCreatedAt = new Date(b.createdAt);
+    });
+  };
 
-      if (aCreatedAt < bCreatedAt) return 1;
-      if (aCreatedAt > bCreatedAt) return -1;
-      return 0;
-    };
+  switch (type) {
+    case "a-z":
+      return sortFunc("name");
+    case "z-a":
+      return sortFunc("name", true);
+    case "created by: a-z":
+      return sortFunc("username");
+    case "created by: z-a":
+      return sortFunc("username", true);
+    case "createdAt: oldest":
+      return sortFunc("createdAt");
+    case "createdAt: newest":
+      return sortFunc("createdAt", true);
+    default:
+      return;
   }
-
-  data.sort(sortFunc);
 };
 
 const filterData = (data, value, type) => {
