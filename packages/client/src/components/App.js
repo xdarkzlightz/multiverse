@@ -8,10 +8,10 @@ import {
 
 import axios from "axios";
 
-import ProjectsPage from "./projects/ProjectsPage";
+import ProjectsPage from "./ProjectsPage";
 import InstanceCreator from "./instanceForm/InstanceCreator";
 import Login from "./LoginPage";
-import UsersList from "./users/UsersList";
+import UsersPage from "./UsersPage";
 
 import { UserProvider } from "../context/UserContext";
 
@@ -37,7 +37,11 @@ export default () => {
             <ProjectsPage />
           </UserProvider>
         </Route>
-        <Route path="/users" component={UsersList} />
+        <Route path="/users">
+          <UserProvider value={{ user, setUser }}>
+            <UsersPage />
+          </UserProvider>
+        </Route>
         <Route path="/create" component={InstanceCreator} />
         <Route path="/login">
           <Login setUser={setUser} user={user} />
