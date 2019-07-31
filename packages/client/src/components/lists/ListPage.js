@@ -11,13 +11,14 @@ import { UserConsumer } from "../../context/UserContext";
 import useApi from "../../hooks/useApi";
 
 export default ({ config }) => {
-  const [{ data, loading, error, auth }, fetchData] = useApi([]);
+  const [{ data, loading, error, auth, url }, { setUrl }] = useApi([]);
   const [filter, setFilter] = useState("a-z");
   const [search, setSearch] = useState("");
+  const refetch = () => setUrl({ ...url, refetch: true });
 
   useEffect(() => {
-    fetchData(config.url);
-  }, [config.url, fetchData]);
+    setUrl({ url: config.url, refetch: false });
+  }, [config.url, setUrl]);
 
   config.sort(data, filter);
 
@@ -47,6 +48,7 @@ export default ({ config }) => {
             data={filteredData}
             Item={config.Item}
             headers={config.headers}
+            refetch={refetch}
           />
         </Container>
       </>

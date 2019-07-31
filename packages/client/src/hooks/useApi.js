@@ -2,15 +2,16 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default initialDataState => {
-  const [url, setUrl] = useState();
+  const [url, setUrl] = useState({ url: "", refetch: false });
   const [data, setData] = useState(initialDataState);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [auth, setAuth] = useState(false);
 
   useEffect(() => {
+    let cancel = false;
     const fetchData = async () => {
-      if (!url) return;
+      if (!url.url) return;
       const token = localStorage.getItem("token");
 
       if (!token) {
@@ -22,21 +23,29 @@ export default initialDataState => {
 
       try {
         const response = await axios({
-          url,
+          url: url.url,
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        setData(response.data);
+        if (!cancel) {
+          setData(response.data);
+        }
       } catch (e) {
-        console.error(e);
-        setError(true);
+        if (!cancel) {
+          console.error(e);
+          setError(true);
+        }
       }
 
-      setLoading(false);
+      if (!cancel) {
+        setLoading(false);
+      }
     };
 
     fetchData();
-  }, [url]);
 
-  return [{ data, loading, error, auth }, setUrl];
+    return () => (cancel = true);
+  }, [url.url, url.refetch, url]);
+
+  return [{ data, loading, error, auth, url }, { setUrl }];
 };
