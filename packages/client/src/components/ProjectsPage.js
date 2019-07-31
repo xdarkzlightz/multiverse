@@ -1,5 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
+import Button from "react-bootstrap/Button";
 import ListPage from "./lists/ListPage";
 
 import ActionButton from "./projects/ActionButton";
@@ -66,6 +68,11 @@ export default () => {
 
       return data.filter(filter);
     },
+    CreateButton: (
+      <Button variant="success" as={Link} to="/create/project">
+        Create
+      </Button>
+    ),
     Item: ({ name, username, createdAt, running, port }) => {
       const createdAtDate = new Date(createdAt);
 

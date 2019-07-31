@@ -4,7 +4,17 @@ import Form from "react-bootstrap/Form";
 import Dropdown from "react-bootstrap/Dropdown";
 import Col from "react-bootstrap/Col";
 
-export default ({ filter, setFilter, search, setSearch, name, filters }) => {
+export default props => {
+  const {
+    filter,
+    setFilter,
+    search,
+    setSearch,
+    name,
+    filters,
+    CreateButton
+  } = props;
+
   return (
     <Form>
       <Form.Row className="d-flex justify-content-center">
@@ -33,6 +43,7 @@ export default ({ filter, setFilter, search, setSearch, name, filters }) => {
             </Dropdown.Menu>
           </Dropdown>
         </Col>
+        <Col className="d-flex justify-content-end">{CreateButton}</Col>
       </Form.Row>
     </Form>
   );

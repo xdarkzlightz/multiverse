@@ -14,6 +14,7 @@ import Login from "./LoginPage";
 import UsersPage from "./UsersPage";
 
 import { UserProvider } from "../context/UserContext";
+import UsersForm from "./userForm/UsersForm";
 
 export default () => {
   const [user, setUser] = useState({});
@@ -42,7 +43,8 @@ export default () => {
             <UsersPage />
           </UserProvider>
         </Route>
-        <Route path="/create" component={InstanceCreator} />
+        <Route path="/create/project" component={InstanceCreator} />
+        <Route path="/create/user" component={UsersForm} />
         <Route path="/login">
           <Login setUser={setUser} user={user} />
         </Route>

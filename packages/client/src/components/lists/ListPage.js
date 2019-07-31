@@ -42,6 +42,7 @@ export default ({ config }) => {
             setSearch={setSearch}
             name={config.name}
             filters={config.filters}
+            CreateButton={config.CreateButton}
           />
 
           <List

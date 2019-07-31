@@ -1,7 +1,9 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 import axios from "axios";
 
+import Button from "react-bootstrap/Button";
 import ListPage from "./lists/ListPage";
 import ActionButton from "./projects/ActionButton";
 
@@ -54,6 +56,11 @@ export default () => {
 
       return data.filter(filter);
     },
+    CreateButton: (
+      <Button variant="success" as={Link} to="/create/user">
+        Create
+      </Button>
+    ),
     Item: ({ username, createdAt, id, refetch }) => {
       const createdAtDate = new Date(createdAt);
 
