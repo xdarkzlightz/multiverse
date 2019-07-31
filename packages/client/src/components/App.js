@@ -43,7 +43,11 @@ export default () => {
             <UsersPage />
           </UserProvider>
         </Route>
-        <Route path="/create/project" component={InstanceCreator} />
+        <Route path="/create/project">
+          <UserProvider value={{ user, setUser }}>
+            <InstanceCreator />
+          </UserProvider>
+        </Route>
         <Route path="/create/user" component={UsersForm} />
         <Route path="/login">
           <Login setUser={setUser} user={user} />
