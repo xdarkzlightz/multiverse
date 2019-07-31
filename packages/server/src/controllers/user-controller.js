@@ -1,6 +1,9 @@
 const UserService = require('../services/UserService')
+const logger = require('../utils/winston')
+const DockerService = require('../services/DockerService')
 
 const userService = new UserService()
+const dockerService = new DockerService()
 
 module.exports.createUser = async ctx => {
   const user = await userService.createUser(ctx.request.body)
@@ -38,6 +41,32 @@ module.exports.getUser = async ctx => {
 
 module.exports.deleteUser = async ctx => {
   await userService.deleteUser(ctx.params.id)
+
+  let containers = await dockerService.getContainers()
+  containers = containers.filter(
+    c => c.Labels['multiverse.userId'] === ctx.params.id
+  )
+
+  const promises = []
+  containers.forEach(c => {
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        if (c.State === 'running') {
+          await dockerService.stopContainer(c.Id, ctx.params.id, true)
+        }
+
+        await dockerService.removeContainer(c.Id, ctx.params.id, true)
+        logger.info('removed container')
+        resolve()
+      } catch (e) {
+        reject(e)
+      }
+    })
+
+    promises.push(promise)
+  })
+
+  await Promise.all(promises)
 
   ctx.status = 204
 }
