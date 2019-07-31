@@ -31,7 +31,7 @@ module.exports.getContainers = async ctx => {
     promises.push(userPromise)
 
     const dockerPromise = docker
-      .getContainer(c.id, ctx.state.user.id, ctx.state.user.admin)
+      .getContainer(c.id, ctx.state.user.id, ctx.state.user.admin, true)
       .then(data => {
         c.createdAt = data.Created
       })

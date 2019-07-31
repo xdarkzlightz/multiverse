@@ -29,13 +29,13 @@ module.exports = class DockerService {
    * @throws {FriendlyError}
    * @returns Promise<Container>
    */
-  async getContainer (id, userId, force = false) {
+  async getContainer (id, userId, force = false, inspect = false) {
     try {
-      let container = await this.docker.getContainer(id)
-      container = await container.inspect()
+      const container = await this.docker.getContainer(id)
+      const data = await container.inspect()
       const {
         Config: { Labels, Image }
-      } = container
+      } = data
 
       if (!Labels.multiverse || !Image === 'codercom/code-server') {
         throw new FriendlyError(
@@ -47,7 +47,7 @@ module.exports = class DockerService {
         throw new FriendlyError('Unauthorized', { status: 401 })
       }
 
-      return container
+      return inspect ? data : container
     } catch (e) {
       if (e.message.includes('no such container')) {
         throw new FriendlyError('Container does not exist.')
