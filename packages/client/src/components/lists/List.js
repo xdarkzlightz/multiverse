@@ -9,7 +9,7 @@ export default ({ headers, data, Item }) => {
         <thead>
           <tr>
             {headers.map(h => (
-              <th>{h}</th>
+              <th key={h}>{h}</th>
             ))}
           </tr>
         </thead>
