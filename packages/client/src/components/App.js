@@ -13,8 +13,9 @@ import InstanceCreator from "./instanceForm/InstanceCreator";
 import Login from "./LoginPage";
 import UsersPage from "./UsersPage";
 
-import { UserProvider } from "../context/UserContext";
+import UserContext from "../context/UserContext";
 import UsersForm from "./userForm/UsersForm";
+import ContextRoute from "./ContextRoute";
 
 export default () => {
   const [user, setUser] = useState({});
@@ -33,22 +34,30 @@ export default () => {
   return (
     <Router>
       <Switch>
-        <Route path="/projects">
-          <UserProvider value={{ user, setUser }}>
-            <ProjectsPage />
-          </UserProvider>
-        </Route>
-        <Route path="/users">
-          <UserProvider value={{ user, setUser }}>
-            <UsersPage />
-          </UserProvider>
-        </Route>
-        <Route path="/create/project">
-          <UserProvider value={{ user, setUser }}>
-            <InstanceCreator />
-          </UserProvider>
-        </Route>
-        <Route path="/create/user" component={UsersForm} />
+        <ContextRoute
+          path="/projects"
+          component={ProjectsPage}
+          contextComponent={UserContext}
+          initValue={{ user, setUser }}
+        />
+        <ContextRoute
+          path="/users"
+          component={UsersPage}
+          contextComponent={UserContext}
+          initValue={{ user, setUser }}
+        />
+        <ContextRoute
+          path="/create/project"
+          component={InstanceCreator}
+          contextComponent={UserContext}
+          initValue={{ user, setUser }}
+        />
+        <ContextRoute
+          path="/create/user"
+          component={UsersForm}
+          contextComponent={UserContext}
+          initValue={{ user, setUser }}
+        />
         <Route path="/login">
           <Login setUser={setUser} user={user} />
         </Route>
