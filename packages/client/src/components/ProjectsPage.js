@@ -1,4 +1,6 @@
 import React from "react";
+import axios from "axios";
+
 import { Link } from "react-router-dom";
 
 import Button from "react-bootstrap/Button";
@@ -9,7 +11,12 @@ import ActionButton from "./projects/ActionButton";
 export default () => {
   const config = {
     name: "Projects",
-    headers: ["Name", "Created By", "Created At", "Actions"],
+    headers: [
+      "Name",
+      { header: "Created By", test: u => u.admin },
+      "Created At",
+      "Actions"
+    ],
     url: "/api/containers",
     filters: [
       "a-z",
@@ -73,22 +80,74 @@ export default () => {
         Create
       </Button>
     ),
-    Item: ({ name, username, createdAt, running, port }) => {
+    Item: props => {
+      const {
+        name,
+        id,
+        username,
+        createdAt,
+        running,
+        port,
+        user,
+        refetch
+      } = props;
       const createdAtDate = new Date(createdAt);
 
       const doAction = async action => {
+        const token = localStorage.getItem("token");
         if (["stop", "kill", "remove"].includes(action)) {
           const confirmed = window.confirm(
             `You're about to ${action} ${name}, are you sure?`
           );
           if (!confirmed) return;
+
+          if (action === "remove") {
+            axios
+              .delete(
+                `/api/containers/${id}`,
+                {},
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
+                }
+              )
+              .then(refetch)
+              .catch(e => console.error(e));
+          } else {
+            axios
+              .post(
+                `/api/containers/${id}/${action}`,
+                {},
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
+                }
+              )
+              .then(refetch)
+              .catch(e => console.error(e));
+          }
+        } else if (action === "start") {
+          axios
+            .post(
+              `/api/containers/${id}/start`,
+              {},
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              }
+            )
+            .then(refetch)
+            .catch(e => console.error(e.message));
         }
       };
 
       return (
         <tr>
           <td>{name.replace("-", " ")}</td>
-          <td>{username}</td>
+          {user.admin ? <td>{username}</td> : <></>}
           <td>{createdAtDate.toDateString()}</td>
           <td>
             {running ? (
@@ -100,19 +159,9 @@ export default () => {
                   }
                 />
 
-                <div>
-                  <span>
-                    <ActionButton
-                      variant="stop"
-                      onClick={() => doAction("stop")}
-                    />
-                  </span>
+                <ActionButton variant="stop" onClick={() => doAction("stop")} />
 
-                  <ActionButton
-                    variant="kill"
-                    onClick={() => doAction("kill")}
-                  />
-                </div>
+                <ActionButton variant="kill" onClick={() => doAction("kill")} />
               </div>
             ) : (
               <div className="d-flex justify-content-between">
