@@ -9,7 +9,7 @@ import {
 import axios from "axios";
 
 import ProjectsPage from "./ProjectsPage";
-import InstanceCreator from "./instanceForm/InstanceCreator";
+import InstanceCreator from "./projectForm/ProjectForm";
 import Login from "./LoginPage";
 import UsersPage from "./UsersPage";
 
