@@ -45,12 +45,17 @@ export default ({ config }) => {
             CreateButton={config.CreateButton}
           />
 
-          <List
-            data={filteredData}
-            Item={config.Item}
-            headers={config.headers}
-            refetch={refetch}
-          />
+          <UserConsumer>
+            {({ user }) => (
+              <List
+                data={filteredData}
+                Item={config.Item}
+                headers={config.headers}
+                user={user}
+                refetch={refetch}
+              />
+            )}
+          </UserConsumer>
         </Container>
       </>
     );
