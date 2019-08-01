@@ -5,7 +5,8 @@ const joiErrors = require('./joiErrors')
 const schema = Joi.object()
   .keys({
     username,
-    password
+    password,
+    admin: Joi.boolean().default(false)
   })
   .error(joiErrors)
 
