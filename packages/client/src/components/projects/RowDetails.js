@@ -4,7 +4,7 @@ import Button from "react-bootstrap/Button";
 
 import multiverse from "../../api/multiverse";
 
-export default ({ name, id, refetch, port, running, username }) => {
+export default ({ name, id, refetch, port, running, username, user }) => {
   const doAction = async action => {
     if (["stop", "kill", "remove"].includes(action)) {
       const confirmed = window.confirm(
@@ -29,7 +29,7 @@ export default ({ name, id, refetch, port, running, username }) => {
     }
   };
 
-  if (username === "admin") {
+  if (username === "admin" && user.username !== "admin") {
     return null;
   } else
     return running ? (
