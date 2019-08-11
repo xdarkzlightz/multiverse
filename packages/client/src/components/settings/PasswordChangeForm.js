@@ -33,7 +33,7 @@ export default () => {
         onSubmit={({ oldPassword, newPassword }, { setSubmitting }) => {
           const id = localStorage.getItem("user_id");
 
-          multiverse()
+          multiverse
             .patch(`users/${id}/updatePassword`, {
               oldPassword,
               newPassword

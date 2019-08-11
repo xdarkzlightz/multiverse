@@ -49,7 +49,7 @@ export default () => (
                 );
                 if (!confirmed) return;
 
-                multiverse()
+                multiverse
                   .patch(`/users/${id}/resetPassword`, { password: "password" })
                   .then(refetch)
                   .catch(console.error);
@@ -65,7 +65,7 @@ export default () => (
                 );
                 if (!confirmed) return;
 
-                multiverse()
+                multiverse
                   .delete(`users/${id}`)
                   .then(refetch)
                   .catch(console.error);

@@ -13,16 +13,16 @@ export default ({ name, id, refetch, port, running, username, user }) => {
       if (!confirmed) return;
 
       action === "remove"
-        ? multiverse()
+        ? multiverse
             .delete(`containers/${id}`)
             .then(refetch)
             .catch(console.error)
-        : multiverse()
+        : multiverse
             .post(`containers/${id}/${action}`)
             .then(refetch)
             .catch(console.error);
     } else if (action === "start") {
-      multiverse()
+      multiverse
         .post(`containers/${id}/start`)
         .then(refetch)
         .catch(console.error);

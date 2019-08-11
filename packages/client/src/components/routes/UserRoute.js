@@ -14,7 +14,7 @@ export default ({ component, admin, ...rest }) => {
   if (!user.admin && user.id && admin) return <Redirect to="/" />;
 
   if (token && id && !user.id) {
-    multiverse()
+    multiverse
       .get(`users/${id}`)
       .then(res => setUser(res.data))
       .catch(console.error);

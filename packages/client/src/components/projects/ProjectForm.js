@@ -16,7 +16,7 @@ export default ({ setDisplayForm, refetch }) => (
       initialValues={{ name: "", path: "" }}
       validationSchema={schema}
       onSubmit={(values, { setSubmitting }) => {
-        multiverse()
+        multiverse
           .post("containers", values)
           .then(() => {
             setSubmitting(false);

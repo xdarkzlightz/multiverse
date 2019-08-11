@@ -15,7 +15,7 @@ export default ({ setDisplayForm, refetch }) => (
     <Formik
       initialValues={{ username: "", password: "", admin: false }}
       onSubmit={(values, { setSubmitting }) => {
-        multiverse()
+        multiverse
           .post("users", values)
           .then(() => {
             setSubmitting(false);
