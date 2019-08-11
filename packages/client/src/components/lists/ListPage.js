@@ -1,63 +1,79 @@
 import React, { useState, useEffect } from "react";
-import { Redirect } from "react-router-dom";
 
 import Container from "react-bootstrap/Container";
-
-import Header from "../Header";
-import Toolbar from "./ListsToolbar";
+import Header from "../header/Header";
 import List from "./List";
-import { UserConsumer } from "../../context/UserContext";
+import { UserConsumer } from "../context/UserContext";
 
-import useApi from "../../hooks/useApi";
+import multiverse from "../../api/multiverse";
+import Button from "react-bootstrap/Button";
 
 export default ({ config }) => {
-  const [{ data, loading, error, auth, url }, { setUrl }] = useApi([]);
-  const [filter, setFilter] = useState("a-z");
+  const [{ data, refetch, fetched }, setData] = useState({
+    data: [],
+    refetch: false,
+    fetched: false
+  });
   const [search, setSearch] = useState("");
-  const refetch = () => setUrl({ ...url, refetch: true });
+  const sort = useState({
+    sort: config.columns[0].name,
+    reverse: false
+  });
+  const [displayForm, setDisplayForm] = useState(false);
+  const dropdownState = useState("");
+  const refetchData = () =>
+    setData({ data: [...data], refetch: true, fetched: true });
 
   useEffect(() => {
-    setUrl({ url: config.url, refetch: false });
-  }, [config.url, setUrl]);
+    if ((!data.length || refetch) && (!fetched || refetch)) {
+      multiverse()
+        .get(config.url)
+        .then(({ data }) => setData({ data, refetch: false, fetched: true }))
+        .catch(console.error);
+    }
+  }, [data, config.url, refetch, fetched]);
 
-  config.sort(data, filter);
+  if (!fetched) return <></>;
 
-  const filteredData = config.filter(data, search, filter);
-
-  if (loading) {
-    return <></>;
-  } else if (error && !auth) {
-    return <Redirect to="/login" />;
-  } else if (error) {
-    return <h1>Error has occured</h1>;
-  } else {
-    return (
-      <>
-        <UserConsumer>{data => <Header {...data} />}</UserConsumer>
-        <Container>
-          <Toolbar
-            setFilter={setFilter}
-            filter={filter}
-            search={search}
-            setSearch={setSearch}
-            name={config.name}
-            filters={config.filters}
-            CreateButton={config.CreateButton}
-          />
-
-          <UserConsumer>
-            {({ user }) => (
-              <List
-                data={filteredData}
-                Item={config.Item}
-                headers={config.headers}
-                user={user}
-                refetch={refetch}
+  return (
+    <>
+      <UserConsumer>
+        {userState => (
+          <>
+            <Header {...userState} search={search} setSearch={setSearch} />
+            {displayForm ? (
+              <config.Form
+                setDisplayForm={setDisplayForm}
+                refetch={refetchData}
               />
+            ) : (
+              <Container>
+                <div className="d-flex justify-content-between">
+                  <h3>{config.name}</h3>
+                  <span>
+                    <Button
+                      variant="success"
+                      onClick={() => setDisplayForm(true)}
+                    >
+                      Create
+                    </Button>
+                  </span>
+                </div>
+
+                <List
+                  items={data}
+                  config={config}
+                  user={userState.user}
+                  refetch={refetchData}
+                  sortState={sort}
+                  search={search}
+                  dropdownState={dropdownState}
+                />
+              </Container>
             )}
-          </UserConsumer>
-        </Container>
-      </>
-    );
-  }
+          </>
+        )}
+      </UserConsumer>
+    </>
+  );
 };

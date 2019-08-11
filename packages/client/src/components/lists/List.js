@@ -1,35 +1,61 @@
 import React from "react";
 
 import Table from "react-bootstrap/Table";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowUp, faArrowDown } from "@fortawesome/free-solid-svg-icons";
+import ListRow from "./ListRow";
 
-export default ({ headers, data, Item, user, refetch }) => {
+export default ({
+  dropdownState,
+  items,
+  config,
+  user,
+  refetch,
+  sortState,
+  search
+}) => {
+  const [{ sort, reverse }, setSort] = sortState;
+  const column = config.columns.find(({ name }) => sort === name);
+  const data = [...items].filter(d => column.filterFunc(d, search));
+  reverse ? column.reverseSortFunc(data) : column.sortFunc(data);
+
   return (
-    <>
-      <Table className="mt-3">
-        <thead>
-          <tr>
-            {headers.map(h => {
-              if (typeof h === "string") {
-                return <th key={h}>{h}</th>;
-              } else if (typeof h === "object") {
-                const pass = h.test(user);
-                if (pass) {
-                  return <th key={h.header}>{h.header}</th>;
-                } else {
-                  return undefined;
-                }
-              } else {
-                return undefined;
+    <Table className="mt-3">
+      <thead>
+        <tr>
+          {config.columns.map(c => (
+            <td
+              onClick={() =>
+                setSort({
+                  sort: c.name,
+                  reverse: c.name === sort ? !reverse : false
+                })
               }
-            })}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map(d => (
-            <Item key={d.id} {...d} refetch={refetch} user={user} />
+              key={c.name}
+              className="clickable"
+            >
+              {c.name + " "}
+              <FontAwesomeIcon
+                icon={reverse && sort === c.name ? faArrowUp : faArrowDown}
+                size="sm"
+              />
+            </td>
           ))}
-        </tbody>
-      </Table>
-    </>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map(d => (
+          <ListRow
+            user={user}
+            key={d.id}
+            data={d}
+            columns={config.columns}
+            config={config}
+            refetch={refetch}
+            dropDownState={dropdownState}
+          />
+        ))}
+      </tbody>
+    </Table>
   );
 };
