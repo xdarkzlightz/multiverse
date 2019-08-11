@@ -1,8 +1,8 @@
 module.exports = class FriendlyError extends Error {
-  constructor (message, data) {
+  constructor (message, data = {}) {
     super(data)
 
-    this.status = 400
+    this.status = data.status || 400
 
     if (Array.isArray(message)) {
       let msg = ''
