@@ -13,7 +13,7 @@ const validator = validate({
 
 // Middleware for checking if the user sending the request is an admin
 const adminOnly = async (ctx, next) => {
-  if (ctx.state.user.username !== 'admin') {
+  if (!ctx.state.user.admin) {
     ctx.status = 401
     return
   }
@@ -21,10 +21,7 @@ const adminOnly = async (ctx, next) => {
 }
 
 const checkUser = async (ctx, next) => {
-  if (
-    ctx.state.user.id !== ctx.params.id &&
-    ctx.state.user.username !== 'admin'
-  ) {
+  if (ctx.state.user.id !== ctx.params.id && !ctx.state.user.admin) {
     ctx.status = 401
     return
   }
