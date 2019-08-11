@@ -111,19 +111,25 @@ module.exports = class UserService {
     logger.info(`Deleted user ${id}`)
   }
 
-  // Attempts to update a user's username by their id
-  async updateUser (id, { username, firstLogin }) {
+  // Attempts to update a user's properties by their id
+  async updateUser (id, { username, firstLogin }, adminId) {
     await this.connect()
     const user = await this.getUserById(id)
+    if (user.username === 'admin' && user.id !== adminId) {
+      throw new FriendlyError('Only admin user can update itself')
+    }
     await user.update({ username, firstLogin })
     logger.info(`Updated user ${id}`)
   }
 
   // Changes a users password without checking the old one
   // Intended for admins
-  async resetPassword (id, password) {
+  async resetPassword (id, password, adminId) {
     await this.connect()
     const user = await this.getUserById(id)
+    if (user.username === 'admin' && user.id !== adminId) {
+      throw new FriendlyError('Only admin user can update itself')
+    }
     const hash = await bcrypt.hash(password, 12)
     await user.update({ password: hash })
     logger.info(`Reset password for user ${id}`)
@@ -131,9 +137,12 @@ module.exports = class UserService {
 
   // Attempts to update a users password
   // Intended for users
-  async updatePassword (id, oldPassword, newPassword) {
+  async updatePassword (id, oldPassword, newPassword, adminId) {
     await this.connect()
     const user = await this.getUserById(id)
+    if (user.username === 'admin' && user.id !== adminId) {
+      throw new FriendlyError('Only admin user can update itself')
+    }
     const match = await bcrypt.compare(oldPassword, user.password)
 
     if (match) {
