@@ -88,3 +88,12 @@ body {
 .form-control-plaintext {
   padding-left: 5px;
 }
+
+.clickable:hover {
+  cursor: pointer;
+  background-color: #191f29;
+}
+
+#col-detail {
+  border-top: none;
+}
