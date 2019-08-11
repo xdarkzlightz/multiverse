@@ -15,6 +15,7 @@ module.exports.login = async (ctx, next) => {
         if (user.firstLogin) {
           await userService.updateUser(user.id, { firstLogin: false })
         }
+        ctx.cookies.set('jwt', token, { maxAge: 1000 * 60 * 60 * 24 * 3 })
         ctx.status = 200
         ctx.body = { success: true, token, id: user.id }
       } else {
