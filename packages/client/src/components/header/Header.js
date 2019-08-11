@@ -9,7 +9,7 @@ import Form from "react-bootstrap/Form";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 
-export default ({ user, search, setSearch }) => {
+export default ({ user, search, setSearch, searchbar }) => {
   const [redirect, setRedirect] = useState(false);
   if (redirect) return <Redirect to="/login" />;
 
@@ -31,14 +31,17 @@ export default ({ user, search, setSearch }) => {
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="responsive-navbar-nav" />
       <Navbar.Collapse id="responsive-navbar-nav">
-        <Form inline>
-          <Form.Control
-            plaintext
-            placeholder="Search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </Form>
+        {searchbar ? (
+          <Form inline>
+            <Form.Control
+              plaintext
+              placeholder="Search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </Form>
+        ) : null}
+
         <Nav className="ml-auto">
           {user.admin ? (
             <Nav.Link as={Link} to="/users">

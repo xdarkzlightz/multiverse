@@ -40,7 +40,12 @@ export default ({ config }) => {
       <UserConsumer>
         {userState => (
           <>
-            <Header {...userState} search={search} setSearch={setSearch} />
+            <Header
+              {...userState}
+              search={search}
+              setSearch={setSearch}
+              searchbar
+            />
             {displayForm ? (
               <config.Form
                 setDisplayForm={setDisplayForm}
