@@ -104,6 +104,9 @@ module.exports = class UserService {
   async deleteUser (id) {
     await this.connect()
     const user = await this.getUserById(id)
+    if (user.username === 'admin') {
+      throw new FriendlyError('Cannot delete admin user')
+    }
     await user.destroy()
     logger.info(`Deleted user ${id}`)
   }
