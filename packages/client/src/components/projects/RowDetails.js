@@ -37,7 +37,7 @@ export default ({ name, id, refetch, port, running, username, user }) => {
         <Button
           variant="success"
           onClick={() =>
-            window.open(`http://${window.location.hostname}:${port}`)
+            window.open(`http://${window.location.hostname}/projects/${name}/`)
           }
           className="mr-auto"
         >
