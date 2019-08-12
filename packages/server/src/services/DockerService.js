@@ -85,6 +85,8 @@ module.exports = class DockerService {
       throw new FriendlyError('Container already started.')
     }
 
+    console.log('?')
+
     await container.start()
   }
 
@@ -131,22 +133,26 @@ module.exports = class DockerService {
    */
   async createContainer (options) {
     let { name, path, userId } = options
-    const ExposedPorts = { '8443': {} }
-    const PortBindings = { '8443': [{ HostPort: '8443' }] }
+
+    const MULTIVERSE_PROJECT_HOST = process.env.MULTIVERSE_PROJECT_HOST
+    const MULTIVERSE_PROJECT_NETWORK = process.env.MULTIVERSE_PROJECT_NETWORK
 
     const container = await this.docker.createContainer({
       Image: 'codercom/code-server',
-      Entrypoint: ['dumb-init', 'code-server'],
-      ExposedPorts,
+      Cmd: ['--allow-http', '--no-auth'],
       Labels: {
         multiverse: 'true',
         [`multiverse.port`]: '8443',
         [`multiverse.project`]: name,
-        [`multiverse.userId`]: userId
+        [`multiverse.userId`]: userId,
+        [`traefik.backend`]: `${userId}-${name}`,
+        [`traefik.frontend.rule`]: `Host:${MULTIVERSE_PROJECT_HOST};PathPrefixStrip:/projects/${name}/`,
+        [`traefik.frontend.port`]: '8443',
+        [`traefik.docker.network`]: MULTIVERSE_PROJECT_NETWORK
       },
       HostConfig: {
-        PortBindings,
-        Binds: [`${path}:/home/coder/project`]
+        Binds: [`${path}:/home/coder/project`],
+        NetworkMode: MULTIVERSE_PROJECT_NETWORK
       }
     })
 
