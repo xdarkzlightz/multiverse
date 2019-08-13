@@ -2,7 +2,6 @@ const passport = require('koa-passport')
 const LocalStrategy = require('passport-local').Strategy
 const UserService = require('./UserService')
 const JwtStrategy = require('passport-jwt').Strategy
-const ExtractJwt = require('passport-jwt').ExtractJwt
 const bcrypt = require('bcrypt')
 const FriendlyError = require('../errors/FriendlyError')
 
@@ -35,9 +34,10 @@ passport.use(
 
 const opts = {}
 
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken()
-// The secret key will be provided by a config provider once authentication and accounts are finished
-opts.secretOrKey = 'secureLater'
+opts.jwtFromRequest = ctx => ctx.cookies.get('jwt')
+
+const secret = process.env.MULTIVERSE_JWT_SECRET
+opts.secretOrKey = secret
 
 passport.use(
   new JwtStrategy(opts, async (jwtPayload, done) => {

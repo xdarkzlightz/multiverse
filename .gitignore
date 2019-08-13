@@ -67,3 +67,9 @@ build/
 
 # The sqlite data file that gets generated while testing
 users.sqlite3
+
+Dockerfile.dev
+
+docker-compose.dev.yaml
+
+.env.development

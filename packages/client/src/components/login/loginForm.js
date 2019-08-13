@@ -26,9 +26,8 @@ export default () => {
         onSubmit={async (values, { setSubmitting }) => {
           try {
             const {
-              data: { token, id }
+              data: { id }
             } = await axios.post("/api/auth/login", values);
-            localStorage.setItem("token", token);
             localStorage.setItem("user_id", id);
             setRedirect(true);
           } catch (e) {

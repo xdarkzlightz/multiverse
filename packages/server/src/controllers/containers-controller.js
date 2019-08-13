@@ -86,3 +86,15 @@ module.exports.removeContainer = async ctx => {
   await docker.removeContainer(ctx.params.id, id, admin)
   ctx.response.status = 204
 }
+
+module.exports.authProject = async ctx => {
+  const { id } = ctx.state.user
+  const containers = await docker.getContainers()
+  const container = containers.filter(
+    c => c.Labels[`multiverse.project`] === ctx.params.project
+  )[0]
+
+  container.Labels['multiverse.userId'] === id
+    ? (ctx.status = 204)
+    : (ctx.status = 401)
+}

@@ -26,7 +26,7 @@ export default ({ config }) => {
 
   useEffect(() => {
     if ((!data.length || refetch) && (!fetched || refetch)) {
-      multiverse()
+      multiverse
         .get(config.url)
         .then(({ data }) => setData({ data, refetch: false, fetched: true }))
         .catch(console.error);
