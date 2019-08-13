@@ -10,8 +10,8 @@ module.exports.login = async (ctx, next) => {
     async (err, user, info) => {
       if (err) console.log(err)
       if (user) {
-        // The secret key will be provided by a config provider once authentication and accounts are finished
-        const token = jwt.sign({ id: user.id }, 'secureLater')
+        const secret = process.env.MULTIVERSE_JWT_SECRET
+        const token = jwt.sign({ id: user.id }, secret)
         if (user.firstLogin) {
           await userService.updateUser(user.id, { firstLogin: false })
         }

@@ -36,8 +36,8 @@ const opts = {}
 
 opts.jwtFromRequest = ctx => ctx.cookies.get('jwt')
 
-// The secret key will be provided by a config provider once authentication and accounts are finished
-opts.secretOrKey = 'secureLater'
+const secret = process.env.MULTIVERSE_JWT_SECRET
+opts.secretOrKey = secret
 
 passport.use(
   new JwtStrategy(opts, async (jwtPayload, done) => {
