@@ -1,0 +1,18 @@
+defaultEntryPoints = ["http"]
+
+[entryPoints]
+  [entryPoints.dashboard]
+    address = ":8080"
+    [entryPoints.dashboard.auth]
+      [entryPoints.dashboard.auth.basic]
+        users = ["admin:password"]
+  [entryPoints.http]
+    address = ":80"
+
+[api]
+entrypoint="dashboard"
+
+[docker]
+domain = "yourDomain"
+watch = true
+network = "web"

@@ -1,0 +1,39 @@
+version: "3"
+
+networks:
+  web:
+    external: true
+
+services:
+  traefik:
+    image: traefik:1.7.2-alpine
+    ports:
+      - 80:80
+    volumes:
+      - ./traefix.toml:/traefik.toml
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - traefik.frontend.rule=Host:monitor.HOST
+      - traefik.port=8080
+    networks:
+      - web
+  multiverse:
+    image: xdarkzlightz/multiverse
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - MULTIVERSE_PROJECT_HOST=HOST
+      - MULTIVERSE_PROJECT_NETWORK=web
+      - MULTIVERSE_JWT_SECRET=SECRET
+      - MULTIVERSE_BACKEND=BACKEND
+    labels:
+      - traefik.client.backend=multiverse_client
+      - traefik.client.frontend.rule=Host:HOST
+      - traefik.client.docker.network=web
+      - traefik.client.port=3001
+      - traefik.api.backend=multiverse_api
+      - traefik.api.frontend.rule=Host:HOST;PathPrefix:/api/
+      - traefik.api.docker.network=web
+      - traefik.api.port=3000
+    networks:
+      - web
