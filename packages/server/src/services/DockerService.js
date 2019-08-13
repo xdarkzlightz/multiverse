@@ -136,6 +136,7 @@ module.exports = class DockerService {
 
     const MULTIVERSE_PROJECT_HOST = process.env.MULTIVERSE_PROJECT_HOST
     const MULTIVERSE_PROJECT_NETWORK = process.env.MULTIVERSE_PROJECT_NETWORK
+    const MULTIVERSE_BACKEND = process.env.MULTIVERSE_BACKEND
 
     const container = await this.docker.createContainer({
       Image: 'codercom/code-server',
@@ -148,7 +149,11 @@ module.exports = class DockerService {
         [`traefik.backend`]: `${userId}-${name}`,
         [`traefik.frontend.rule`]: `Host:${MULTIVERSE_PROJECT_HOST};PathPrefixStrip:/projects/${name}/`,
         [`traefik.frontend.port`]: '8443',
-        [`traefik.docker.network`]: MULTIVERSE_PROJECT_NETWORK
+        [`traefik.docker.network`]: MULTIVERSE_PROJECT_NETWORK,
+        [`traefik.frontend.auth.forward.address`]: `http://${MULTIVERSE_PROJECT_HOST}/api/containers/${name}/auth`,
+        [`traefik.frontend.errors.unauthorized.backend`]: MULTIVERSE_BACKEND,
+        [`traefik.frontend.errors.unauthorized.query`]: '/',
+        [`traefik.frontend.errors.unauthorized.status`]: '401'
       },
       HostConfig: {
         Binds: [`${path}:/home/coder/project`],
