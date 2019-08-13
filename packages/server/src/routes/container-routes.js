@@ -56,4 +56,10 @@ router.post(
   ctl.startContainer
 )
 
+router.get(
+  `${BASE_URL}/:project/auth`,
+  passport.authenticate('jwt', { session: false }),
+  ctl.authProject
+)
+
 module.exports = router
