@@ -6,55 +6,55 @@ const docker = new DockerService()
 const userService = new UserService()
 
 module.exports.getContainers = async ctx => {
-  let containers = await docker.getContainers()
+  let projects = await docker.getContainers()
 
   if (!ctx.state.user.admin) {
-    containers = containers.filter(
-      ({ Labels }) => Labels['multiverse.userId'] === ctx.state.user.id
+    projects.projects = projects.projects.filter(
+      ({ userId }) => userId === ctx.state.user.id
     )
   }
 
-  const mappedContainers = containers.map(c => ({
-    id: c.Id,
-    name: c.Labels['multiverse.project'],
-    running: c.State === 'running',
-    port: c.Labels['multiverse.port'] || '8443',
-    userId: c.Labels['multiverse.userId']
-  }))
+  const mappedProjects = projects.projects.map(p => {
+    const container = projects.containers.filter(({ Id }) => p.containerId)
+    return {
+      id: p.containerId,
+      name: p.name,
+      running: container.State === 'running',
+      userId: p.userId
+    }
+  })
 
   const promises = []
-  mappedContainers.forEach(c => {
+  mappedProjects.forEach(p => {
     const userPromise = userService
-      .getUserById(c.userId)
-      .then(user => (c.username = user.username))
+      .getUserById(p.userId)
+      .then(user => (p.username = user.username))
       .catch(e => logger.error(e))
     promises.push(userPromise)
 
     const dockerPromise = docker
-      .getContainer(c.id, ctx.state.user.id, ctx.state.user.admin, true)
-      .then(data => {
-        c.createdAt = data.Created
+      .getContainer(p.id, ctx.state.user.id, ctx.state.user.admin, true)
+      .then(({ data }) => {
+        p.createdAt = data.Created
       })
       .catch(e => logger.error(e))
     promises.push(dockerPromise)
   })
   await Promise.all(promises)
-  ctx.body = mappedContainers
+  ctx.body = mappedProjects
   ctx.response.status = 200
 }
 
 module.exports.createContainer = async ctx => {
-  const containers = await docker.getContainers()
-  const nameInUse = containers.some(
-    c => c.Labels['multiverse.project'] === ctx.request.body.name
-  )
+  const { projects } = await docker.getContainers()
+  const nameInUse = projects.some(p => p.name === ctx.request.body.name)
   if (nameInUse) {
     ctx.response.status = 400
     ctx.body = `name ${ctx.request.body.name} is already in use.`
     return
   }
 
-  const container = await docker.createContainer({
+  const { container } = await docker.createContainer({
     ...ctx.request.body,
     userId: ctx.state.user.id
   })
@@ -89,12 +89,8 @@ module.exports.removeContainer = async ctx => {
 
 module.exports.authProject = async ctx => {
   const { id } = ctx.state.user
-  const containers = await docker.getContainers()
-  const container = containers.filter(
-    c => c.Labels[`multiverse.project`] === ctx.params.project
-  )[0]
+  const { projects } = await docker.getContainers()
+  const project = projects.filter(p => p.name === ctx.params.project)[0]
 
-  container.Labels['multiverse.userId'] === id
-    ? (ctx.status = 204)
-    : (ctx.status = 401)
+  project.userId === id ? (ctx.status = 204) : (ctx.status = 401)
 }
