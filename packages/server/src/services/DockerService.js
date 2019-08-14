@@ -1,5 +1,9 @@
+const Sequelize = require('sequelize')
 const Docker = require('dockerode')
+const join = require('path').join
+const logger = require('../utils/winston')
 const FriendlyError = require('../errors/FriendlyError')
+const Project = require('../models/Project')
 
 /**
  * @class
@@ -8,6 +12,24 @@ const FriendlyError = require('../errors/FriendlyError')
 module.exports = class DockerService {
   constructor () {
     this.docker = new Docker()
+    this.sequelize = new Sequelize({
+      dialect: 'sqlite',
+      storage: join(process.cwd(), '/users.sqlite3'),
+      logging: msg => logger.debug(msg)
+    })
+    this.project = Project(this.sequelize)
+    this.connection = false
+  }
+
+  async connect () {
+    if (this.connection) return
+    await this.sequelize.authenticate()
+    logger.debug('Connected to sqlite database')
+
+    this.connection = true
+
+    await this.project.sync()
+    logger.debug('Synchronised project model')
   }
 
   /**
@@ -15,12 +37,17 @@ module.exports = class DockerService {
    * @returns Promise<Array[Container]>
    */
   async getContainers () {
+    await this.connect()
     const containers = await this.docker.listContainers({
       all: true,
       filters: { label: ['multiverse=true'] }
     })
+    const projects = await this.project.findAll()
 
-    return containers.filter(c => c.Image === 'codercom/code-server')
+    return {
+      containers: containers.filter(c => c.Image === 'codercom/code-server'),
+      projects
+    }
   }
 
   /**
@@ -31,8 +58,11 @@ module.exports = class DockerService {
    */
   async getContainer (id, userId, force = false, inspect = false) {
     try {
+      await this.connect()
       const container = await this.docker.getContainer(id)
       const data = await container.inspect()
+      const project = await this.project.findOne({ where: { containerId: id } })
+
       const {
         Config: { Labels, Image }
       } = data
@@ -47,7 +77,7 @@ module.exports = class DockerService {
         throw new FriendlyError('Unauthorized', { status: 401 })
       }
 
-      return inspect ? data : container
+      return inspect ? { data, project } : { container, project }
     } catch (e) {
       if (e.message.includes('no such container')) {
         throw new FriendlyError('Container does not exist.')
@@ -85,8 +115,6 @@ module.exports = class DockerService {
       throw new FriendlyError('Container already started.')
     }
 
-    console.log('?')
-
     await container.start()
   }
 
@@ -113,13 +141,15 @@ module.exports = class DockerService {
    * @returns Promise<void>
    */
   async removeContainer (id, userId, force = false) {
-    const container = await this.getContainer(id, userId, force)
+    await this.connect()
+    const { container, project } = await this.getContainer(id, userId, force)
     const data = await container.inspect()
     if (data.State.Running) {
       throw new FriendlyError('Cannot remove a running container.')
     }
 
     await container.remove()
+    if (project) await project.destroy()
   }
 
   /**
@@ -132,6 +162,7 @@ module.exports = class DockerService {
    * @returns Promise<Container>
    */
   async createContainer (options) {
+    await this.connect()
     let { name, path, userId } = options
 
     const MULTIVERSE_PROJECT_HOST = process.env.MULTIVERSE_PROJECT_HOST
@@ -143,9 +174,6 @@ module.exports = class DockerService {
       Cmd: ['--allow-http', '--no-auth'],
       Labels: {
         multiverse: 'true',
-        [`multiverse.port`]: '8443',
-        [`multiverse.project`]: name,
-        [`multiverse.userId`]: userId,
         [`traefik.backend`]: `${userId}-${name}`,
         [`traefik.frontend.rule`]: `Host:${MULTIVERSE_PROJECT_HOST};PathPrefixStrip:/projects/${name}/`,
         [`traefik.frontend.port`]: '8443',
@@ -161,6 +189,12 @@ module.exports = class DockerService {
       }
     })
 
-    return container
+    const info = await this.project.create({
+      name,
+      containerId: container.id,
+      userId
+    })
+
+    return { container, info }
   }
 }
