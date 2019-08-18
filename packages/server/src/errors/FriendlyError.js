@@ -4,12 +4,6 @@ module.exports = class FriendlyError extends Error {
 
     this.status = data.status || 400
 
-    if (Array.isArray(message)) {
-      let msg = ''
-      message.forEach(_msg => (msg += _msg))
-      this.message = msg
-    } else {
-      this.message = message
-    }
+    this.message = Array.isArray(message) ? message.join(' ') : message
   }
 }
