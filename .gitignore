@@ -70,6 +70,6 @@ users.sqlite3
 
 Dockerfile.dev
 
-docker-compose.dev.yaml
+docker-compose.dev.yml
 
 .env.development
