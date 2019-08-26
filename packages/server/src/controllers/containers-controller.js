@@ -1,52 +1,30 @@
-const DockerService = require('../services/DockerService')
-const UserService = require('../services/UserService')
-const logger = require('../utils/winston')
-
-const docker = new DockerService()
-const userService = new UserService()
+const dockerService = require('../services/DockerService')
+const projectService = require('../services/ProjectService')
 
 module.exports.getContainers = async ctx => {
-  let projects = await docker.getContainers()
+  let projects = await projectService.getProjects()
 
   if (!ctx.state.user.admin) {
-    projects.projects = projects.projects.filter(
-      ({ userId }) => userId === ctx.state.user.id
-    )
+    projects = projects.filter(({ author }) => author.id === ctx.state.user.id)
   }
 
-  const mappedProjects = projects.projects.map(p => {
-    const container = projects.containers.filter(({ Id }) => p.containerId)
+  const mappedProjects = projects.map(p => {
     return {
-      id: p.containerId,
+      id: p.id,
       name: p.name,
-      running: container.State === 'running',
-      userId: p.userId
+      running: p.container.data.State.Running,
+      userId: p.author.id,
+      username: p.author.username,
+      createdAt: p.container.data.Created
     }
   })
 
-  const promises = []
-  mappedProjects.forEach(p => {
-    const userPromise = userService
-      .getUserById(p.userId)
-      .then(user => (p.username = user.username))
-      .catch(e => logger.error(e))
-    promises.push(userPromise)
-
-    const dockerPromise = docker
-      .getContainer(p.id, ctx.state.user.id, ctx.state.user.admin, true)
-      .then(({ data }) => {
-        p.createdAt = data.Created
-      })
-      .catch(e => logger.error(e))
-    promises.push(dockerPromise)
-  })
-  await Promise.all(promises)
   ctx.body = mappedProjects
   ctx.response.status = 200
 }
 
 module.exports.createContainer = async ctx => {
-  const { projects } = await docker.getContainers()
+  const projects = await projectService.getProjects()
   const nameInUse = projects.some(p => p.name === ctx.request.body.name)
   if (nameInUse) {
     ctx.response.status = 400
@@ -54,43 +32,46 @@ module.exports.createContainer = async ctx => {
     return
   }
 
-  const { container } = await docker.createContainer({
-    ...ctx.request.body,
-    userId: ctx.state.user.id
+  const project = await projectService.createProject(ctx.state.user.id, {
+    ...ctx.request.body
   })
-  ctx.body = { id: container.id }
+
+  ctx.body = { id: project.id }
   ctx.response.status = 201
 }
 
 module.exports.stopContainer = async ctx => {
   const { id, admin } = ctx.state.user
-  await docker.stopContainer(ctx.params.id, id, admin)
+  const project = await projectService.getProject(ctx.params.id)
+  await dockerService.stopContainer(project.containerId, id, admin)
   ctx.response.status = 204
 }
 
 module.exports.killContainer = async ctx => {
   const { id, admin } = ctx.state.user
-  await docker.killContainer(ctx.params.id, id, admin)
+  const project = await projectService.getProject(ctx.params.id)
+  await dockerService.killContainer(project.containerId, id, admin)
   ctx.response.status = 204
 }
 
 module.exports.startContainer = async ctx => {
   const { id, admin } = ctx.state.user
-  await docker.startContainer(ctx.params.id, id, admin)
+  const project = await projectService.getProject(ctx.params.id)
+  await dockerService.startContainer(project.containerId, id, admin)
 
   ctx.response.status = 204
 }
 
 module.exports.removeContainer = async ctx => {
   const { id, admin } = ctx.state.user
-  await docker.removeContainer(ctx.params.id, id, admin)
+  await projectService.removeProject(ctx.params.id, id, admin)
   ctx.response.status = 204
 }
 
 module.exports.authProject = async ctx => {
   const { id } = ctx.state.user
-  const { projects } = await docker.getContainers()
+  const projects = await projectService.getProjects()
   const project = projects.filter(p => p.name === ctx.params.project)[0]
 
-  project.userId === id ? (ctx.status = 204) : (ctx.status = 401)
+  project.author.id === id ? (ctx.status = 204) : (ctx.status = 401)
 }
