@@ -81,8 +81,8 @@ module.exports.startContainer = async id => {
  * @throws ContainerStoppedError
  * @returns Promise<void>
  */
-module.exports.killContainer = async (id, userId, force = false) => {
-  const container = await getContainer(id, userId, force)
+module.exports.killContainer = async (id, force = false) => {
+  const container = await getContainer(id, force)
   const data = await container.inspect()
   if (!data.State.Running) {
     throw new FriendlyError('Container already stopped.')

@@ -10,7 +10,7 @@ module.exports.getContainers = async ctx => {
 
   const mappedProjects = projects.map(p => {
     return {
-      id: p.id,
+      id: p._id,
       name: p.name,
       running: p.container.data.State.Running,
       userId: p.author.id,
@@ -41,37 +41,39 @@ module.exports.createContainer = async ctx => {
 }
 
 module.exports.stopContainer = async ctx => {
-  const { id, admin } = ctx.state.user
+  const { admin } = ctx.state.user
   const project = await projectService.getProject(ctx.params.id)
-  await dockerService.stopContainer(project.containerId, id, admin)
+  await dockerService.stopContainer(project.containerId, admin)
   ctx.response.status = 204
 }
 
 module.exports.killContainer = async ctx => {
-  const { id, admin } = ctx.state.user
+  const { admin } = ctx.state.user
   const project = await projectService.getProject(ctx.params.id)
-  await dockerService.killContainer(project.containerId, id, admin)
+  await dockerService.killContainer(project.containerId, admin)
   ctx.response.status = 204
 }
 
 module.exports.startContainer = async ctx => {
-  const { id, admin } = ctx.state.user
+  const { admin } = ctx.state.user
   const project = await projectService.getProject(ctx.params.id)
-  await dockerService.startContainer(project.containerId, id, admin)
+  await dockerService.startContainer(project.containerId, admin)
 
   ctx.response.status = 204
 }
 
 module.exports.removeContainer = async ctx => {
-  const { id, admin } = ctx.state.user
-  await projectService.removeProject(ctx.params.id, id, admin)
+  const { admin } = ctx.state.user
+  await projectService.removeProject(ctx.params.id, admin)
   ctx.response.status = 204
 }
 
 module.exports.authProject = async ctx => {
-  const { id } = ctx.state.user
+  const { _id } = ctx.state.user
   const projects = await projectService.getProjects()
   const project = projects.filter(p => p.name === ctx.params.project)[0]
 
-  project.author.id === id ? (ctx.status = 204) : (ctx.status = 401)
+  project.author._id.toString() === _id.toString()
+    ? (ctx.status = 204)
+    : (ctx.status = 401)
 }

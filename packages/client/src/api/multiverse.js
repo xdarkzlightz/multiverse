@@ -1,6 +1,6 @@
-import axios from "axios";
+import axios from 'axios'
 
 export default axios.create({
-  baseURL: "/api/",
-  timeout: 1000
-});
+  baseURL: '/api/',
+  timeout: 5000
+})
