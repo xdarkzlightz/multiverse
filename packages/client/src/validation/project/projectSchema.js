@@ -1,8 +1,8 @@
-import Joi from "joi-browser";
+import { object } from "yup";
 import name from "./name";
 import path from "./path";
 
-export default Joi.object().keys({
+export default object().shape({
   name,
   path
 });

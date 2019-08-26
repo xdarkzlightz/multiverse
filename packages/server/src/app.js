@@ -1,24 +1,43 @@
 const Koa = require('koa')
 const bodyParser = require('koa-bodyparser')
 const logger = require('koa-morgan')
+const passport = require('koa-passport')
+const mongoose = require('mongoose')
 const join = require('path').join
-const dockerRoutes = require('./routes/container-routes')
 const winston = require('./utils/winston')
+const userService = require('./services/UserService')
 const FriendlyError = require('./errors/FriendlyError')
 
+const {
+  MONGO_HOST,
+  MONGO_PORT,
+  MONGO_DB,
+  ENV,
+  PASSWORD
+} = require('./config/config')
+
+mongoose
+  .connect(`mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`, {
+    useNewUrlParser: true
+  })
+  .then(() =>
+    winston.info(
+      `Connected to db mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}`
+    )
+  )
+  .catch(winston.error)
+
 const app = new Koa()
-const env = process.env.NODE_ENV
 
 app.use(bodyParser())
-// Don't want to be logging endpoints if in a test environment
-if (env !== 'test') app.use(logger('combined', { stream: winston.stream }))
+if (ENV !== 'test') app.use(logger('combined', { stream: winston.stream }))
 
 app.use(async (ctx, next) => {
   try {
     await next()
   } catch (err) {
     if (err instanceof FriendlyError) {
-      ctx.status = 400
+      ctx.status = err.status
       ctx.body = err.message
       ctx.app.emit('error', err, ctx)
     } else {
@@ -29,12 +48,29 @@ app.use(async (ctx, next) => {
   }
 })
 
-app.use(dockerRoutes.routes())
+require('./services/PassportService')
+app.use(passport.initialize())
+
+app.use(require('./routes/container-routes').routes())
+app.use(require('./routes/user-routes').routes())
+app.use(require('./routes/auth-routes').routes())
+
 // Multiverse-Server can optionally serve a client using the GET / endpoint
 app.use(require('koa-static')(join(__dirname, '/client')))
 
-app.on('error', (err, ctx) => {
-  if (err.status !== 400) winston.error(err.stack)
-})
+app.on('error', err =>
+  err instanceof FriendlyError !== true ? winston.error(err.stack) : null
+)
 
-module.exports = app
+module.exports = async () => {
+  const admin = await userService.getUserByUsername('admin')
+  if (!admin) {
+    await userService.createUser({
+      username: 'admin',
+      password: PASSWORD,
+      admin: true
+    })
+  }
+
+  return app
+}

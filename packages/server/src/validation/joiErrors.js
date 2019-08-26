@@ -24,7 +24,10 @@ module.exports = errs => {
           '%LABEL': label,
           '%LIMIT': limit,
           '%POS': pos,
-          '%CHARS': label === 'name' ? 'a-z A-Z .-_' : 'a-z 0-9'
+          '%CHARS':
+            label === 'name' || label === 'username'
+              ? 'a-z A-Z .-_'
+              : 'a-z A-Z $-.^&#!%^'
         }
         const regex = /%LABEL|%LIMIT|%POS|%CHARS/g
         const msg = reasons[reason.type].replace(regex, m => variables[m])

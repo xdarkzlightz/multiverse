@@ -1,50 +1,79 @@
-const DockerService = require('../services/DockerService')
-
-const docker = new DockerService()
+const dockerService = require('../services/DockerService')
+const projectService = require('../services/ProjectService')
 
 module.exports.getContainers = async ctx => {
-  const containers = await docker.getContainers()
-  ctx.body = containers.map(c => ({
-    id: c.Id,
-    name: c.Labels['multiverse.project'],
-    running: c.State === 'running',
-    port: c.Labels['multiverse.port'] || '8443'
-  }))
+  let projects = await projectService.getProjects()
+
+  if (!ctx.state.user.admin) {
+    projects = projects.filter(({ author }) => author.id === ctx.state.user.id)
+  }
+
+  const mappedProjects = projects.map(p => {
+    return {
+      id: p._id,
+      name: p.name,
+      running: p.container.data.State.Running,
+      userId: p.author.id,
+      username: p.author.username,
+      createdAt: p.container.data.Created
+    }
+  })
+
+  ctx.body = mappedProjects
   ctx.response.status = 200
 }
 
 module.exports.createContainer = async ctx => {
-  const containers = await docker.getContainers()
-  const nameInUse = containers.some(
-    c => c.Labels['multiverse.project'] === ctx.request.body.name
-  )
+  const projects = await projectService.getProjects()
+  const nameInUse = projects.some(p => p.name === ctx.request.body.name)
   if (nameInUse) {
     ctx.response.status = 400
     ctx.body = `name ${ctx.request.body.name} is already in use.`
     return
   }
 
-  const container = await docker.createContainer(ctx.request.body)
-  ctx.body = { id: container.id }
+  const project = await projectService.createProject(ctx.state.user.id, {
+    ...ctx.request.body
+  })
+
+  ctx.body = { id: project.id }
   ctx.response.status = 201
 }
 
 module.exports.stopContainer = async ctx => {
-  await docker.stopContainer(ctx.params.id)
+  const { admin } = ctx.state.user
+  const project = await projectService.getProject(ctx.params.id)
+  await dockerService.stopContainer(project.containerId, admin)
   ctx.response.status = 204
 }
 
 module.exports.killContainer = async ctx => {
-  await docker.killContainer(ctx.params.id)
+  const { admin } = ctx.state.user
+  const project = await projectService.getProject(ctx.params.id)
+  await dockerService.killContainer(project.containerId, admin)
   ctx.response.status = 204
 }
 
 module.exports.startContainer = async ctx => {
-  await docker.startContainer(ctx.params.id)
+  const { admin } = ctx.state.user
+  const project = await projectService.getProject(ctx.params.id)
+  await dockerService.startContainer(project.containerId, admin)
+
   ctx.response.status = 204
 }
 
 module.exports.removeContainer = async ctx => {
-  await docker.removeContainer(ctx.params.id)
+  const { admin } = ctx.state.user
+  await projectService.removeProject(ctx.params.id, admin)
   ctx.response.status = 204
+}
+
+module.exports.authProject = async ctx => {
+  const { _id } = ctx.state.user
+  const projects = await projectService.getProjects()
+  const project = projects.filter(p => p.name === ctx.params.project)[0]
+
+  project.author._id.toString() === _id.toString()
+    ? (ctx.status = 204)
+    : (ctx.status = 401)
 }

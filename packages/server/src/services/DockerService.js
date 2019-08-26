@@ -1,155 +1,142 @@
 const Docker = require('dockerode')
 const FriendlyError = require('../errors/FriendlyError')
+const { NETWORK, BACKEND, PROJECT_HOST } = require('../config/config')
+
+const docker = new Docker()
+
+const getContainer = async id => {
+  try {
+    const container = await docker.getContainer(id)
+    const data = await container.inspect()
+
+    const {
+      Config: { Labels, Image }
+    } = data
+
+    if (!Labels.multiverse || !Image === 'codercom/code-server') {
+      throw new FriendlyError(
+        'Unable to access container, it was not created by multiverse.'
+      )
+    }
+
+    return { container, data }
+  } catch (e) {
+    if (e.message.includes('no such container')) {
+      throw new FriendlyError('Container does not exist.')
+    }
+    throw e
+  }
+}
+
+module.exports.getContainers = async () => {
+  const containers = await docker.listContainers({
+    all: true,
+    filters: { label: ['multiverse=true'] }
+  })
+
+  return containers.filter(c => c.Image === 'codercom/code-server')
+}
 
 /**
- * @class
- * @description Docker service for managing code-server containers
+ * @description Gets a container by it's id
+ * @param {string} id Container id
+ * @throws {FriendlyError}
+ * @returns Promise<Container>
  */
-module.exports = class DockerService {
-  constructor () {
-    this.docker = new Docker()
+module.exports.getContainer = getContainer
+
+/**
+ * @description Stops a container
+ * @param {string} id Container id
+ * @throws ContainerStoppedError
+ * @returns Promise<void>
+ */
+module.exports.stopContainer = async id => {
+  const { container, data } = await getContainer(id)
+  if (!data.State.Running) {
+    throw new FriendlyError('Container already stopped.')
   }
 
-  /**
-   * @description Gets an array of containers
-   * @returns Promise<Array[Container]>
-   */
-  async getContainers () {
-    const containers = await this.docker.listContainers({
-      all: true,
-      filters: { label: ['multiverse=true'] }
-    })
+  await container.stop()
+}
 
-    return containers.filter(c => c.Image === 'codercom/code-server')
+/**
+ * @description Starts a container
+ * @param {string} id Container id
+ * @throws ContainerStartedError
+ * @returns Promise<void>
+ */
+module.exports.startContainer = async id => {
+  const { container, data } = await getContainer(id)
+  if (data.State.Running) {
+    throw new FriendlyError('Container already started.')
   }
 
-  /**
-   * @description Gets a container by it's id
-   * @param {string} id Container id
-   * @throws {FriendlyError}
-   * @returns Promise<Container>
-   */
-  async getContainer (id) {
-    try {
-      const container = await this.docker.getContainer(id)
-      const {
-        Config: { Labels, Image }
-      } = await container.inspect()
+  await container.start()
+}
 
-      if (!Labels.multiverse || !Image === 'codercom/code-server') {
-        throw new FriendlyError(
-          'Unable to access container, it was not created by multiverse.'
-        )
-      }
+/**
+ * @description Kills a container
+ * @param {string} id Container id
+ * @throws ContainerStoppedError
+ * @returns Promise<void>
+ */
+module.exports.killContainer = async (id, force = false) => {
+  const container = await getContainer(id, force)
+  const data = await container.inspect()
+  if (!data.State.Running) {
+    throw new FriendlyError('Container already stopped.')
+  }
 
-      return container
-    } catch (e) {
-      if (e.message.includes('no such container')) {
-        throw new FriendlyError('Container does not exist.')
-      }
-      throw e
+  await container.kill()
+}
+
+/**
+ * @description Removes a container
+ * @param {string} id Container id
+ * @throws ContainerRunningError
+ * @returns Promise<void>
+ */
+module.exports.removeContainer = async id => {
+  const { container, data } = await getContainer(id)
+  if (data.State.Running) {
+    throw new FriendlyError('Cannot remove a running container.')
+  }
+
+  await container.remove()
+}
+
+/**
+ * @typedef {Object} Options
+ * @property {string} name
+ * @property {string} path
+ *
+ * @description Creates a container
+ * @param {Options} options Container id
+ * @returns Promise<Container>
+ */
+module.exports.createContainer = async options => {
+  let { name, path, userId } = options
+
+  const container = await docker.createContainer({
+    Image: 'codercom/code-server',
+    Cmd: ['--allow-http', '--no-auth'],
+    Labels: {
+      multiverse: 'true',
+      [`traefik.backend`]: `${userId}-${name}`,
+      [`traefik.frontend.rule`]: `Host:${PROJECT_HOST};PathPrefixStrip:/projects/${name}/`,
+      [`traefik.frontend.port`]: '8443',
+      [`traefik.docker.network`]: NETWORK,
+      [`traefik.frontend.auth.forward.address`]: `http://${PROJECT_HOST}/api/containers/${name}/auth`,
+      [`traefik.frontend.errors.unauthorized.backend`]: BACKEND,
+      [`traefik.frontend.errors.unauthorized.query`]: '/',
+      [`traefik.frontend.errors.unauthorized.status`]: '401'
+    },
+    HostConfig: {
+      Binds: [`${path}:/home/coder/project`],
+      NetworkMode: NETWORK
     }
-  }
+  })
 
-  /**
-   * @description Stops a container
-   * @param {string} id Container id
-   * @throws ContainerStoppedError
-   * @returns Promise<void>
-   */
-  async stopContainer (id) {
-    const container = await this.getContainer(id)
-    const data = await container.inspect()
-    if (!data.State.Running) {
-      throw new FriendlyError('Container already stopped.')
-    }
-
-    await container.stop()
-  }
-
-  /**
-   * @description Starts a container
-   * @param {string} id Container id
-   * @throws ContainerStartedError
-   * @returns Promise<void>
-   */
-  async startContainer (id) {
-    const container = await this.getContainer(id)
-    const data = await container.inspect()
-    if (data.State.Running) {
-      throw new FriendlyError('Container already started.')
-    }
-
-    await container.start()
-  }
-
-  /**
-   * @description Kills a container
-   * @param {string} id Container id
-   * @throws ContainerStoppedError
-   * @returns Promise<void>
-   */
-  async killContainer (id) {
-    const container = await this.getContainer(id)
-    const data = await container.inspect()
-    if (!data.State.Running) {
-      throw new FriendlyError('Container already stopped.')
-    }
-
-    await container.kill()
-  }
-
-  /**
-   * @description Removes a container
-   * @param {string} id Container id
-   * @throws ContainerRunningError
-   * @returns Promise<void>
-   */
-  async removeContainer (id) {
-    const container = await this.getContainer(id)
-    const data = await container.inspect()
-    if (data.State.Running) {
-      throw new FriendlyError('Cannot remove a running container.')
-    }
-
-    await container.remove()
-  }
-
-  /**
-   * @typedef {Object} Options
-   * @property {string} name
-   * @property {string} password
-   * @property {[number]} port
-   * @property {string} path
-   * @property {[[number]]} ports
-   * @property {[[string]]} volumes
-   * @property {boolean} http
-   * @property {auth} auth
-   *
-   * @description Creates a container
-   * @param {Options} options Container id
-   * @returns Promise<Container>
-   */
-  async createContainer (options) {
-    let { name, path } = options
-    const ExposedPorts = { '8443': {} }
-    const PortBindings = { '8443': [{ HostPort: '8443' }] }
-
-    const container = await this.docker.createContainer({
-      Image: 'codercom/code-server',
-      Entrypoint: ['dumb-init', 'code-server'],
-      ExposedPorts,
-      Labels: {
-        multiverse: 'true',
-        [`multiverse.port`]: '8443',
-        [`multiverse.project`]: name
-      },
-      HostConfig: {
-        PortBindings,
-        Binds: [`${path}:/home/coder/project`]
-      }
-    })
-
-    return container
-  }
+  return container
 }
