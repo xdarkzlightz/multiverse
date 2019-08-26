@@ -7,7 +7,7 @@ COPY ./packages/client .
 RUN yarn build
 
 # Final build with client
-FROM node:8-alpine
+FROM node:8
 WORKDIR /usr/app
 COPY ./packages/server/package.json .
 RUN yarn --production
