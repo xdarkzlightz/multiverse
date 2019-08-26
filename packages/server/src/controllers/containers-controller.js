@@ -10,7 +10,7 @@ module.exports.getContainers = async ctx => {
 
   const mappedProjects = projects.map(p => {
     return {
-      id: p.id,
+      id: p._id,
       name: p.name,
       running: p.container.data.State.Running,
       userId: p.author.id,

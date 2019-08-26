@@ -15,7 +15,9 @@ module.exports.getUsers = async ctx => {
 
   ctx.body = users.map(u => {
     const user = u.toJSON()
+    user.id = user._id
     delete user.password
+    delete user._id
     return user
   })
 
@@ -25,7 +27,9 @@ module.exports.getUsers = async ctx => {
 module.exports.getUser = async ctx => {
   const user = await userService.getUserById(ctx.params.id)
   const response = user.toJSON()
+  response.id = response._id
   delete response.password
+  delete response._id
 
   ctx.body = response
 
