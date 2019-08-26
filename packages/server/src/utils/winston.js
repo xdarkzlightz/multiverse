@@ -1,6 +1,7 @@
 const { createLogger, transports, format } = require('winston')
+const { ENV } = require('../config/config')
 
-const env = process.env.NODE_ENV === 'production' ? 'info' : 'debug'
+const env = ENV === 'production' ? 'info' : 'debug'
 
 const logger = createLogger({
   level: env,
@@ -15,7 +16,7 @@ const logger = createLogger({
 })
 
 logger.stream = {
-  write: function (message, encoding) {
+  write: (message, encoding) => {
     logger.info(message)
   }
 }
