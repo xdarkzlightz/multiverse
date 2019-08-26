@@ -1,37 +1,10 @@
-const Sequelize = require('sequelize')
-const Model = Sequelize.Model
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
-module.exports = sequelize => {
-  class Project extends Model {}
-  Project.init(
-    {
-      id: {
-        type: Sequelize.UUID,
-        primaryKey: true,
-        allowNull: false,
-        defaultValue: Sequelize.UUIDV4
-      },
-      containerId: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true
-      },
-      userId: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true
-      },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true
-      }
-    },
-    {
-      sequelize,
-      modelName: 'project'
-    }
-  )
+const Project = new Schema({
+  name: String,
+  author: { type: Schema.Types.ObjectId, ref: 'User' },
+  containerId: String
+})
 
-  return Project
-}
+module.exports = mongoose.model('Project', Project)
