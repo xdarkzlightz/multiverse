@@ -61,7 +61,7 @@ const deleteUser = async id => {
   })
 
   await Promise.all(promises)
-  logger.info(`Deleted user ${id}`)
+  logger.debug(`Deleted user ${id}`)
 }
 
 // Attempts to update a user's properties by their id
@@ -71,7 +71,7 @@ const updateUser = async (id, { username }, adminId) => {
     throw new FriendlyError('Only the admin user can update itself')
   }
   await user.update({ username })
-  logger.info(`Updated user ${user.username} (${id})`)
+  logger.debug(`Updated user ${user.username} (${id})`)
 }
 
 // Changes a users password without checking the old one
@@ -83,7 +83,7 @@ const resetPassword = async (id, password, adminId) => {
   }
   const hash = await bcrypt.hash(password, 12)
   await user.update({ password: hash })
-  logger.info(`Reset password for user ${id}`)
+  logger.debug(`Reset password for user ${id}`)
 }
 
 // Attempts to update a users password
