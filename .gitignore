@@ -73,3 +73,5 @@ Dockerfile.dev
 docker-compose.dev.yml
 
 .env.development
+
+dev.env
