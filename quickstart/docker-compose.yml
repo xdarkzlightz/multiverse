@@ -1,10 +1,16 @@
-version: "3"
+version: '3'
 
 networks:
   web:
     external: true
+  internal:
+    external: false
 
 services:
+  mongo:
+    image: mongo
+    networks:
+      - internal
   traefik:
     image: traefik:1.7.2-alpine
     ports:
@@ -19,21 +25,30 @@ services:
       - web
   multiverse:
     image: xdarkzlightz/multiverse
+    depends_on:
+      - mongo
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - MULTIVERSE_PROJECT_HOST=HOST
-      - MULTIVERSE_PROJECT_NETWORK=web
-      - MULTIVERSE_JWT_SECRET=SECRET
-      - MULTIVERSE_BACKEND=BACKEND
+      - PORT=8080
+      - HOST=0.0.0.0
+      - PROJECT_HOST=HOST
+      - NETWORK=web
+      - SECRET=SECRET
+      - BACKEND=BACKEND
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_DB=multiverse
+      - PASSWORD=password
     labels:
       - traefik.client.backend=multiverse_client
       - traefik.client.frontend.rule=Host:HOST
       - traefik.client.docker.network=web
-      - traefik.client.port=3001
+      - traefik.client.port=3000
       - traefik.api.backend=multiverse_api
       - traefik.api.frontend.rule=Host:HOST;PathPrefix:/api/
       - traefik.api.docker.network=web
-      - traefik.api.port=3000
+      - traefik.api.port=8080
     networks:
       - web
+      - internal
